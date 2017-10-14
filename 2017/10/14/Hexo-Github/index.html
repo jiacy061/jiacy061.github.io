@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>利用hexo在github上搭建简单博客的入坑记 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Jiacy,一个不务正业的大学生、不入流的代码民工、不靠谱的笔记本推荐者、即将失业的准就业青年" />
+  
+
+  <meta name="description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博客">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用hexo在github上搭建简单博客的入坑记">
+<meta property="og:url" content="http://www.jiacy.me/2017/10/14/Hexo-Github/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博客">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-10-14T09:43:45.957Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="利用hexo在github上搭建简单博客的入坑记">
+<meta name="twitter:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博客">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">主页</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">主页</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hexo"><span class="toc-text">Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#搭建准备工作"><span class="toc-text">搭建准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装NodeJs"><span class="toc-text">安装NodeJs</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装Hexo"><span class="toc-text">安装Hexo</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#开始搭建博客"><span class="toc-text">开始搭建博客</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pull到github"><span class="toc-text">pull到github</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何使用theme"><span class="toc-text">如何使用theme</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何绑定自己的域名到github"><span class="toc-text">如何绑定自己的域名到github</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Hexo-Github" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">利用hexo在github上搭建简单博客的入坑记</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.14</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy Jiang</span>
+        </span>
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://www.jiacy.top/2017/10/14/Hexo-Github/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。<br>寻找了一圈，发现常用的是jekll和<a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。</p>
+<h2 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Hexo 是一款基于Node.js、快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
+<h2 id="搭建准备工作"><a href="#搭建准备工作" class="headerlink" title="搭建准备工作"></a>搭建准备工作</h2><blockquote><p>1、安装<a href="https://git-scm.com/" target="_blank" rel="external">git</a>或者<a href="https://desktop.github.com/" target="_blank" rel="external">github desktop</a>；<br>2、准备<a href="https://nodejs.org/en/" target="_blank" rel="external">NodeJs</a>安装包。</p>
+</blockquote>
+<h2 id="安装NodeJs"><a href="#安装NodeJs" class="headerlink" title="安装NodeJs"></a>安装NodeJs</h2><p>我使用了默认的安装，安装过程中选择自动添加环境变量，省去自行添加环境变量的麻烦，此步不会的请自行<a href="https://www.baidu.com/" target="_blank" rel="external">百度</a>或<a href="https://www.google.com" target="_blank" rel="external">google</a>。</p>
+<h2 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h2><blockquote><p>1、打开cmd，进入NodeJs安装目录；<br>2、利用npm命令安装hexo即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install -g hexo</div></pre></td></tr></table></figure></blockquote>
+<h2 id="开始搭建博客"><a href="#开始搭建博客" class="headerlink" title="开始搭建博客"></a>开始搭建博客</h2><blockquote><p>1、自行选择一个目录（任意目录即可），创建一个文件夹，例如我在D盘创建了一个blog空文件夹；<br>2、进入文件夹，并执行以下语句，初始化hexo：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo init</div></pre></td></tr></table></figure><br>3、安装依赖包：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install</div></pre></td></tr></table></figure><br>4、利用theme模版生成网页，生成文件在/public文件夹里，index.html是主页：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo g</div></pre></td></tr></table></figure><br>5、在本地建立临时服务器，可查看网页效果：</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo s</div></pre></td></tr></table></figure><br>访问<a href="http://localhost:4000" target="_blank" rel="external">http://localhost:4000</a>即可看到你的博客。</p>
+</blockquote>
+<h2 id="pull到github"><a href="#pull到github" class="headerlink" title="pull到github"></a>pull到github</h2><blockquote><p>1、在github上建立repository，命名为xxx.github.io（xxx是你的用户名）；<br>2、在本地clone一个repository；<br>或者<br>在github desktop上建立一个本地的repository，命名为xxx.github.io，然后publish上去即可。<br>3、把blog/public（blog是刚才你自己新建的文件夹名称）里的文件复制到本地的xxx.github.io文件夹中，pull到github即可。</p>
+</blockquote>
+<h2 id="如何使用theme"><a href="#如何使用theme" class="headerlink" title="如何使用theme"></a>如何使用theme</h2><p>从各种渠道可以获取到hexo的<a href="https://hexo.io/themes/" target="_blank" rel="external">主题</a>，下载zip压缩包到本地，并可以自行命名文件夹（例如我把新的主题命名为fexo）。<br>将文件夹拷贝到blog/theme目录下，更新blog目录下的_config.yml文件中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">\# Extensions</div><div class="line">\# Plugins: https://hexo.io/plugins/</div><div class="line">Themes: https://hexo.io/themes/</div><div class="line">theme: fexo</div></pre></td></tr></table></figure><br>更改theme标签，例如我要使用的新标签fexo，记住冒号“：”之后有空格。<br>最后，更改主题根目录下的_config.yml文件相关信息，重新生成网页，即可得到自己的网页。</p>
+<h2 id="如何绑定自己的域名到github"><a href="#如何绑定自己的域名到github" class="headerlink" title="如何绑定自己的域名到github"></a>如何绑定自己的域名到github</h2><p>方法其实很简单，只需要在自己的域名解析中添加两条cname记录<br>主机记录分别填：@和www<br>记录值填：xxx.github.io<br>等待记录生效即可。</p>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="http://jiacy.top" target="_blank" rel="external">jiacy.top</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">就是不让你支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/14/hello-world/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'Jiacy';
+    
+    var disqus_url = 'http://www.jiacy.me/2017/10/14/Hexo-Github/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//Jiacy.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
