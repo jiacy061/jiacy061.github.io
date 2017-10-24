@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Jiacy | 影子">
 <meta property="og:description" content="前言我记得在一次《编译原理》课上，老师很惊讶的说：“你们作为学计算机的人，居然还用百度，不知道科学上网google吗？再不济也应该用bing啊！”科学上网的大业势必是我们成长中的必经之路，本着无聊又眼馋隔壁大佬自行搭建VPN，决定自行搭建一个VPN服务器，听说github有student package嘛，50刀不用白不用!  谁比较需要单独搭建VPS科学上网？ 其实，好多专业的同学并没有科学上网">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-19T07:35:52.719Z">
+<meta property="og:updated_time" content="2017-10-24T11:22:25.182Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="科学上网教程">
 <meta name="twitter:description" content="前言我记得在一次《编译原理》课上，老师很惊讶的说：“你们作为学计算机的人，居然还用百度，不知道科学上网google吗？再不济也应该用bing啊！”科学上网的大业势必是我们成长中的必经之路，本着无聊又眼馋隔壁大佬自行搭建VPN，决定自行搭建一个VPN服务器，听说github有student package嘛，50刀不用白不用!  谁比较需要单独搭建VPS科学上网？ 其实，好多专业的同学并没有科学上网">
@@ -135,6 +135,17 @@
         <li class="item-toolbox">
           <a
             class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
             href="/link/"
             rel="noopener noreferrer"
             target="_self"
@@ -220,7 +231,7 @@
 </blockquote>
 <h1 id="谁比较需要单独搭建VPS科学上网？"><a href="#谁比较需要单独搭建VPS科学上网？" class="headerlink" title="谁比较需要单独搭建VPS科学上网？"></a>谁比较需要单独搭建VPS科学上网？</h1><ul>
 <li>其实，好多专业的同学并没有科学上网的需求，以至于我都不知道该把我的VPN分享给谁好。</li>
-<li>只是翻墙简单浏览网页，就不必要再单独花费人民币了，蓝灯、和各个网站的免费ss账户，enough！例如，你可以在<a href="https://doub.io/" target="_blank" rel="external">逗比聚集地</a>找到<a href="https://doub.io/sszhfx/" target="_blank" rel="external">免费的SS帐号</a>（此网站需要翻墙，可以先使用蓝灯翻出去搜索）。</li>
+<li>只是翻墙简单浏览网页，就不必要再单独花费人民币了，蓝灯、和各个网站的免费ss账户，enough！例如，你可以在<a href="https://doub.io/" target="_blank" rel="external">逗比根据地</a>找到<a href="https://doub.io/sszhfx/" target="_blank" rel="external">免费的SS帐号</a>（此网站需要翻墙，可以先使用蓝灯翻出去搜索）。</li>
 <li>偶尔看看视频、不想画太多精力在寻找免费资源上。可以直接购买现成的ss/vpn账户，在某宝上就可以找到很多比较靠谱的店家。</li>
 <li>常年泡视频网站又受不了国内视频网站乱七八糟、24h使用google服务、对稳定性和流量有一定要求、愿意使用一点时间来折腾VPS。比较适合单独购买VPS来科学上网。</li>
 <li>搜索文档，更新软件源、折腾个人网站又不想备案的、折腾开源的。这大概也是一条搭建VPS的理由吧，一举多得。</li>
@@ -231,7 +242,7 @@
 <h1 id="服务器准备工作"><a href="#服务器准备工作" class="headerlink" title="服务器准备工作"></a>服务器准备工作</h1><blockquote><p>创建好一个云服务器的实例，并通过XShell等远程链接上服务器。</p>
 </blockquote>
 <h1 id="部署ShadowSocksR"><a href="#部署ShadowSocksR" class="headerlink" title="部署ShadowSocksR"></a>部署ShadowSocksR</h1><h2 id="SSR相关网站"><a href="#SSR相关网站" class="headerlink" title="SSR相关网站"></a>SSR相关网站</h2><ul>
-<li>由于原版github上的SSR已经被删除，这里提供个人服务器上的<a href="http://www.jiacy.me/downloads/ShadowSocksR.zip" target="_blank" rel="external">下载链接</a>，如果不放心，可以尝试在<a href="https://doub.io/" target="_blank" rel="external">逗比聚集地</a>上寻找SSR资源。</li>
+<li>由于原版github上的SSR已经被删除，这里提供个人服务器上的<a href="http://www.jiacy.me/downloads/ShadowSocksR.zip" target="_blank" rel="external">下载链接</a>，如果不放心，可以尝试在<a href="https://doub.io/" target="_blank" rel="external">逗比根据地</a>上寻找SSR资源。</li>
 <li>ShadowSocksR-windows版（C#）<a href="https://github.com/jiacy061/shadowsocks-windows" target="_blank" rel="external">下载链接</a>，这是我fork的一份源码，开源放心。</li>
 <li>跨平台<a href="https://github.com/erguotou520/electron-ssr" target="_blank" rel="external">electron-ss</a>客户端可以fork此处项目，但上游项目已删除，暂停维护。</li>
 <li>Android用户请点击<a href="https://softs.fun/?dir=%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/Android" target="_blank" rel="external">这里</a>，多种VPN软件可供选择。另有<a href="https://github.com/shadowsocks/shadowsocks-android/releases" target="_blank" rel="external">ShadowSocks</a>releases版可选。</li>
@@ -328,7 +339,7 @@
     <a class="show pull-left" href="/2017/10/14/Hexo-Github/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="hide pull-right" href="/">
+    <a class="show pull-right" href="/2017/10/24/QQ图片防撤回解密教程/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
@@ -391,6 +402,17 @@
               target="_self"
               >
               标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
             </a>
           </li>
         
