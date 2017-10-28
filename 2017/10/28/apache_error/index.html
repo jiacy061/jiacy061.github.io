@@ -7,26 +7,30 @@
 <head>
   <meta charset="utf-8">
   
-  <title>QQ图片防撤回解密教程 | Jiacy | 影子</title>
+  <title>Apache服务器无法启动的故障 | Jiacy | 影子</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="QQ,个人项目," />
+    <meta name="keywords" content="Apache,服务器故障," />
   
 
-  <meta name="description" content="欢迎使用我辣鸡的QQ图片防撤回工具软件用JAVA完成，需要JAVA运行环境，具体百度或google如何配置JAVA运行环境。  打开软件，先进行初次设置； 设置完成后，即可点击“开始”，开始捕获撤回图片； 捕获的图片是进行过加密的，需要作者提供唯一密码； 点击“解密”，在弹出的对话框中，点击“获取密码”，按照本文指引方式完成获取密码工作。  获取方式 软件解码服务是有偿提供，请联系作者获取密码。">
-<meta name="keywords" content="QQ,个人项目">
+  <meta name="description" content="前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apache2 r">
+<meta name="keywords" content="Apache,服务器故障">
 <meta property="og:type" content="article">
-<meta property="og:title" content="QQ图片防撤回解密教程">
-<meta property="og:url" content="http://jiacy.top/2017/10/24/QQ图片防撤回解密教程/index.html">
+<meta property="og:title" content="Apache服务器无法启动的故障">
+<meta property="og:url" content="http://jiacy.top/2017/10/28/apache_error/index.html">
 <meta property="og:site_name" content="Jiacy | 影子">
-<meta property="og:description" content="欢迎使用我辣鸡的QQ图片防撤回工具软件用JAVA完成，需要JAVA运行环境，具体百度或google如何配置JAVA运行环境。  打开软件，先进行初次设置； 设置完成后，即可点击“开始”，开始捕获撤回图片； 捕获的图片是进行过加密的，需要作者提供唯一密码； 点击“解密”，在弹出的对话框中，点击“获取密码”，按照本文指引方式完成获取密码工作。  获取方式 软件解码服务是有偿提供，请联系作者获取密码。">
+<meta property="og:description" content="前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apache2 r">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-24T11:20:14.457Z">
+<meta property="og:image" content="http://jiacy.top/images/171028_img1.png">
+<meta property="og:image" content="http://jiacy.top/images/171028_img2.png">
+<meta property="og:image" content="http://jiacy.top/images/171028_img3.png">
+<meta property="og:updated_time" content="2017-10-28T16:18:12.299Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="QQ图片防撤回解密教程">
-<meta name="twitter:description" content="欢迎使用我辣鸡的QQ图片防撤回工具软件用JAVA完成，需要JAVA运行环境，具体百度或google如何配置JAVA运行环境。  打开软件，先进行初次设置； 设置完成后，即可点击“开始”，开始捕获撤回图片； 捕获的图片是进行过加密的，需要作者提供唯一密码； 点击“解密”，在弹出的对话框中，点击“获取密码”，按照本文指引方式完成获取密码工作。  获取方式 软件解码服务是有偿提供，请联系作者获取密码。">
+<meta name="twitter:title" content="Apache服务器无法启动的故障">
+<meta name="twitter:description" content="前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apache2 r">
+<meta name="twitter:image" content="http://jiacy.top/images/171028_img1.png">
 
   
 
@@ -174,20 +178,20 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#欢迎使用我辣鸡的QQ图片防撤回工具"><span class="toc-text">欢迎使用我辣鸡的QQ图片防撤回工具</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#获取方式"><span class="toc-text">获取方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#关于密码"><span class="toc-text">关于密码</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#apache死亡的原因"><span class="toc-text">apache死亡的原因</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结语"><span class="toc-text">结语</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Tips"><span class="toc-text">Tips</span></a></li></ol></li></ol>
   </div>
 
 
 
 <div class="content content-post CENTER">
-   <article id="post-QQ图片防撤回解密教程" class="article article-type-post" itemprop="blogPost">
+   <article id="post-apache_error" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">QQ图片防撤回解密教程</h1>
+    <h1 class="post-title">Apache服务器无法启动的故障</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2017.10.24</span>
+        <span>2017.10.28</span>
       </span>
 
       
@@ -200,7 +204,7 @@
       
   <span class="article-category">
     <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/个人项目/">个人项目</a>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
   </span>
 
 
@@ -208,7 +212,7 @@
       
         <span>
           <i class="icon-comment"></i>
-          <a href="http://www.jiacy.top/2017/10/24/QQ图片防撤回解密教程/#disqus_thread"></a>
+          <a href="http://www.jiacy.top/2017/10/28/apache_error/#disqus_thread"></a>
         </span>
       
 
@@ -227,22 +231,19 @@
 
   <div class="article-content">
     
-      <h1 id="欢迎使用我辣鸡的QQ图片防撤回工具"><a href="#欢迎使用我辣鸡的QQ图片防撤回工具" class="headerlink" title="欢迎使用我辣鸡的QQ图片防撤回工具"></a>欢迎使用我辣鸡的<a href="http://jiacy.top/project/">QQ图片防撤回工具</a></h1><p>软件用JAVA完成，需要JAVA运行环境，具体百度或google如何配置JAVA运行环境。</p>
-<ul>
-<li>打开软件，先进行初次设置；</li>
-<li>设置完成后，即可点击“开始”，开始捕获撤回图片；</li>
-<li>捕获的图片是进行过加密的，需要作者提供唯一密码；</li>
-<li>点击“解密”，在弹出的对话框中，点击“获取密码”，按照本文指引方式完成获取密码工作。</li>
+      <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的<a href="http://www.jiacy.me" target="_blank" rel="external">jiacy.me</a>域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。</p>
+<h1 id="apache死亡的原因"><a href="#apache死亡的原因" class="headerlink" title="apache死亡的原因"></a>apache死亡的原因</h1><ul>
+<li>我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apache2 restart”尝试重启的时候，报了如下错误，但stop功能正常：<br><img src="/images/171028_img1.png" alt=""></li>
+<li>根据提示，我使用了”journalctl -xe”命令查看细节，如图：<br><img src="/images/171028_img2.png" alt=""></li>
+<li>根据Error后的问题猜测，应该是跟使用root用户启动产生的问题，于是采用普通用户尝试重启apache服务，依旧失败：<br><img src="/images/171028_img3.png" alt=""></li>
+<li>上网搜寻相关资料，找到如下帖子：<br><a href="https://github.com/chardek/docker-websvn/issues/1" target="_blank" rel="external">error while starting apache as root</a><br><a href="https://github.com/GrahamDumpleton/mod_wsgi/issues/100" target="_blank" rel="external">Apache has not been designed to serve pages while\n\trunning as root.</a><br>虽然英语水平有限，但凭借google翻译+自身有限的英语，大概是由于apache的设计原因，不推荐使用root用户启动apache服务。详细的解决方案，我是在以下帖子找到的：<br><a href="https://forums.cpanel.net/threads/apache-wont-start-httpd-configtest-wont-run-as-root.58650/" target="_blank" rel="external">Apache won’t start - httpd configtest won’t run as root??</a></li>
+<li>结合图二的错误信息，对/etc/apache2/apache2.conf文件进行了查看，在第109行找到如下代码：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># These need to be set in /etc/apache2/envvars</div><div class="line">User root</div><div class="line">Group root</div></pre></td></tr></table></figure>
+回想起，这不知道是我什么时候动过的一行代码，不禁恍然大悟。把root改为普通用户之后，重启apache服务，问题解决！又可以重新访问我的网站了，又可以为广大网友提供奇奇怪怪的下载了！喜大普奔~</li>
 </ul>
-<h2 id="获取方式"><a href="#获取方式" class="headerlink" title="获取方式"></a>获取方式</h2><ul>
-<li>软件解码服务是有偿提供，请联系作者获取密码。</li>
-<li>当然，你能破解的话，当然也可以无偿解密啦~</li>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>英语真的很重要，不然google翻译多尴尬嘛！以及首次尝试在文章中加入图片！</p>
+<h2 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h2><ul>
+<li>图片看不清的话，可以在图片上方点击右键，在新的标签页中打开查看。</li>
 </ul>
-<h2 id="关于密码"><a href="#关于密码" class="headerlink" title="关于密码"></a>关于密码</h2><ul>
-<li>密码唯一对应，仅支持对应的windows平台，仅进行简单加密，信安爱好者可以尝试破解。</li>
-<li>由于整个软件基于windows平台开发测试，在mac os和linux环境下可能出现未知异常，请谨慎使用。</li>
-</ul>
-<p>PS.这种三流软件当然是没有市场的啦，能来找我的，肯定都是些熟人。俗话说，生人坑一半，熟人大满贯。感谢大佬们了~</p>
 <blockquote><p>转载请注明出处，无偿提供。</p>
 <footer><strong>@Jiacy</strong><cite><a href="http://jiacy.top">jiacy.top</a></cite></footer></blockquote>
 
@@ -272,10 +273,10 @@
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2017/10/19/科学上网教程/">
+    <a class="show pull-left" href="/2017/10/24/QQ图片防撤回解密教程/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2017/10/28/apache_error/">
+    <a class="hide pull-right" href="/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
@@ -394,7 +395,7 @@
   <script>
     var disqus_shortname = 'Jiacy';
     
-    var disqus_url = 'http://jiacy.top/2017/10/24/QQ图片防撤回解密教程/';
+    var disqus_url = 'http://jiacy.top/2017/10/28/apache_error/';
     
     (function(){
       var dsq = document.createElement('script');
