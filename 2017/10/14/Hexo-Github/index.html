@@ -15,18 +15,18 @@
     <meta name="keywords" content="Hexo,github,搭建博客," />
   
 
-  <meta name="description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博">
+  <meta name="description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 0.Hexo0.1 简介Hexo 是一款基于Node.js、快速、简">
 <meta name="keywords" content="Hexo,github,搭建博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="利用hexo在github上搭建简单博客的入坑记">
 <meta property="og:url" content="http://jiacy.top/2017/10/14/Hexo-Github/index.html">
 <meta property="og:site_name" content="Jiacy | 影子">
-<meta property="og:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博">
+<meta property="og:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 0.Hexo0.1 简介Hexo 是一款基于Node.js、快速、简">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-11-04T03:10:33.563Z">
+<meta property="og:updated_time" content="2017-11-08T11:20:58.230Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="利用hexo在github上搭建简单博客的入坑记">
-<meta name="twitter:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 Hexo简介Hexo 是一款基于Node.js、快速、简洁且高效的博">
+<meta name="twitter:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 0.Hexo0.1 简介Hexo 是一款基于Node.js、快速、简">
 
   
 
@@ -74,7 +74,8 @@
 
 
   
-    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
   
 
   
@@ -174,7 +175,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hexo"><span class="toc-text">Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#搭建准备工作"><span class="toc-text">搭建准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装NodeJs"><span class="toc-text">安装NodeJs</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装Hexo"><span class="toc-text">安装Hexo</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#开始搭建博客"><span class="toc-text">开始搭建博客</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#push到github"><span class="toc-text">push到github</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何使用theme"><span class="toc-text">如何使用theme</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何绑定自己的域名到github"><span class="toc-text">如何绑定自己的域名到github</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#如何让自己的域名添加上https协议"><span class="toc-text">如何让自己的域名添加上https协议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#未填埋的坑"><span class="toc-text">未填埋的坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#此坑已填"><span class="toc-text">此坑已填</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-Hexo"><span class="toc-text">0.Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#0-1-简介"><span class="toc-text">0.1 简介</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-搭建准备工作"><span class="toc-text">1.搭建准备工作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-安装NodeJs"><span class="toc-text">2.安装NodeJs</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-安装Hexo"><span class="toc-text">3.安装Hexo</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-开始搭建博客"><span class="toc-text">4.开始搭建博客</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-push到github"><span class="toc-text">5.push到github</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-如何使用theme"><span class="toc-text">6.如何使用theme</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-如何绑定自己的域名到github"><span class="toc-text">7.如何绑定自己的域名到github</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1-如何让自己的域名添加上https协议"><span class="toc-text">7.1 如何让自己的域名添加上https协议</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-未填埋的坑"><span class="toc-text">8.未填埋的坑</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1-此坑已填"><span class="toc-text">8.1 此坑已填</span></a></li></ol></li></ol>
   </div>
 
 
@@ -193,7 +194,7 @@
       
         <span class="article-author">
           <i class="icon-user"></i>
-          <span>Jiacy Jiang</span>
+          <span>Jiacy</span>
         </span>
       
 
@@ -208,7 +209,7 @@
       
 
       
-      <i class="fa fa-eye"></i> 
+      <i class="fa fa-eye"></i>
         <span id="busuanzi_container_page_pv">
            &nbsp热度 <span id="busuanzi_value_page_pv">
            <i class="fa fa-spinner fa-spin"></i></span>℃
@@ -216,32 +217,32 @@
       
 
       
-      
+
     </div>
   </header>
 
   <div class="article-content">
     
       <p>一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。<br>寻找了一圈，发现常用的是<a href="https://jekyllrb.com/" target="_blank" rel="external">jekyll</a>和<a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。</p>
-<h2 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Hexo 是一款基于Node.js、快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
-<h2 id="搭建准备工作"><a href="#搭建准备工作" class="headerlink" title="搭建准备工作"></a>搭建准备工作</h2><blockquote><p>1、安装<a href="https://git-scm.com/" target="_blank" rel="external">git</a>或者<a href="https://desktop.github.com/" target="_blank" rel="external">github desktop</a>；<br>2、准备<a href="https://nodejs.org/en/" target="_blank" rel="external">NodeJs</a>安装包。</p>
+<h1 id="0-Hexo"><a href="#0-Hexo" class="headerlink" title="0.Hexo"></a>0.Hexo</h1><h2 id="0-1-简介"><a href="#0-1-简介" class="headerlink" title="0.1 简介"></a>0.1 简介</h2><p>Hexo 是一款基于Node.js、快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
+<h1 id="1-搭建准备工作"><a href="#1-搭建准备工作" class="headerlink" title="1.搭建准备工作"></a>1.搭建准备工作</h1><blockquote><p>1、安装<a href="https://git-scm.com/" target="_blank" rel="external">git</a>或者<a href="https://desktop.github.com/" target="_blank" rel="external">github desktop</a>；<br>2、准备<a href="https://nodejs.org/en/" target="_blank" rel="external">NodeJs</a>安装包。</p>
 </blockquote>
-<h2 id="安装NodeJs"><a href="#安装NodeJs" class="headerlink" title="安装NodeJs"></a>安装NodeJs</h2><p>我使用了默认的安装，安装过程中选择自动添加环境变量，省去自行添加环境变量的麻烦，此步不会的请自行<a href="https://www.baidu.com/" target="_blank" rel="external">百度</a>或<a href="https://www.google.com" target="_blank" rel="external">google</a>。</p>
-<h2 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h2><blockquote><p>1、打开cmd，进入NodeJs安装目录；<br>2、利用npm命令安装hexo即可：</p>
+<h1 id="2-安装NodeJs"><a href="#2-安装NodeJs" class="headerlink" title="2.安装NodeJs"></a>2.安装NodeJs</h1><p>我使用了默认的安装，安装过程中选择自动添加环境变量，省去自行添加环境变量的麻烦，此步不会的请自行<a href="https://www.baidu.com/" target="_blank" rel="external">百度</a>或<a href="https://www.google.com" target="_blank" rel="external">google</a>。</p>
+<h1 id="3-安装Hexo"><a href="#3-安装Hexo" class="headerlink" title="3.安装Hexo"></a>3.安装Hexo</h1><blockquote><p>1、打开cmd，进入NodeJs安装目录；<br>2、利用npm命令安装hexo即可：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install -g hexo</div></pre></td></tr></table></figure></blockquote>
-<h2 id="开始搭建博客"><a href="#开始搭建博客" class="headerlink" title="开始搭建博客"></a>开始搭建博客</h2><blockquote><p>1、自行选择一个目录（任意目录即可），创建一个文件夹，例如我在D盘创建了一个blog空文件夹；<br>2、进入文件夹，并执行以下语句，初始化hexo：</p>
+<h1 id="4-开始搭建博客"><a href="#4-开始搭建博客" class="headerlink" title="4.开始搭建博客"></a>4.开始搭建博客</h1><blockquote><p>1、自行选择一个目录（任意目录即可），创建一个文件夹，例如我在D盘创建了一个blog空文件夹；<br>2、进入文件夹，并执行以下语句，初始化hexo：</p>
 <p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo init</div></pre></td></tr></table></figure><br>3、安装依赖包：</p>
 <p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install</div></pre></td></tr></table></figure><br>4、利用theme模版生成网页，生成文件在/public文件夹里，index.html是主页：</p>
 <p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo g</div></pre></td></tr></table></figure><br>5、在本地建立临时服务器，可查看网页效果：</p>
 <p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo s</div></pre></td></tr></table></figure><br>访问<a href="http://localhost:4000" target="_blank" rel="external">http://localhost:4000</a>即可看到你的博客。</p>
 </blockquote>
-<h2 id="push到github"><a href="#push到github" class="headerlink" title="push到github"></a>push到github</h2><blockquote><p>1、在github上建立repository，命名为xxx.github.io（xxx是你的用户名）；<br>2、在本地clone一个repository；<br>或者<br>在github desktop上建立一个本地的repository，命名为xxx.github.io，然后publish上去即可。<br>3、把blog/public（blog是刚才你自己新建的文件夹名称）里的文件复制到本地的xxx.github.io文件夹中，push到github即可。</p>
+<h1 id="5-push到github"><a href="#5-push到github" class="headerlink" title="5.push到github"></a>5.push到github</h1><blockquote><p>1、在github上建立repository，命名为xxx.github.io（xxx是你的用户名）；<br>2、在本地clone一个repository；<br>或者<br>在github desktop上建立一个本地的repository，命名为xxx.github.io，然后publish上去即可。<br>3、把blog/public（blog是刚才你自己新建的文件夹名称）里的文件复制到本地的xxx.github.io文件夹中，push到github即可。</p>
 </blockquote>
-<h2 id="如何使用theme"><a href="#如何使用theme" class="headerlink" title="如何使用theme"></a>如何使用theme</h2><p>从各种渠道可以获取到hexo的<a href="https://hexo.io/themes/" target="_blank" rel="external">主题</a>，下载zip压缩包到本地，并可以自行命名文件夹（例如我把新的主题命名为fexo）。<br>将文件夹拷贝到blog/theme目录下，更新blog目录下的_config.yml文件中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># Extensions</div><div class="line">## Plugins: https://hexo.io/plugins/</div><div class="line">##Themes: https://hexo.io/themes/</div><div class="line">theme: fexo</div></pre></td></tr></table></figure><br>更改theme标签，例如我要使用的新标签fexo，记住冒号“：”之后有空格。<br>最后，更改主题根目录下的_config.yml文件相关信息，重新生成网页，即可得到自己的网页。</p>
-<h2 id="如何绑定自己的域名到github"><a href="#如何绑定自己的域名到github" class="headerlink" title="如何绑定自己的域名到github"></a>如何绑定自己的域名到github</h2><p>方法其实很简单，在本地得xxx.github.io根目录下新建一个txt文件，文件里写不带http开头的域名，例如：jiacy.top。重命名文件为“CNAME”，并去掉后缀名。<br>另外，需要在自己的域名解析中添加两条cname记录。<br>主机记录分别填：@和www<br>记录值填：xxx.github.io<br>等待记录生效即可。</p>
-<h3 id="如何让自己的域名添加上https协议"><a href="#如何让自己的域名添加上https协议" class="headerlink" title="如何让自己的域名添加上https协议"></a>如何让自己的域名添加上https协议</h3><p>这里再次用到第三方服务，<a href="https://app.netlify.com/" target="_blank" rel="external">Netlify</a>提供了一个加密协议，把github上的xxx.github.io库引导到这个网站上，此网站会生成一个新的网址，例如我的是jiacy.netlify.com。<br>此时，更改之前的cname记录值为：jiacy.netlify.com<br>再次等待记录生效即可。<br>具体流程参看<a href="https://jaeger.itscoder.com/web/2017/08/30/github-page-https" target="_blank" rel="external">写代码的猴子</a>的帖子。</p>
-<h2 id="未填埋的坑"><a href="#未填埋的坑" class="headerlink" title="未填埋的坑"></a>未填埋的坑</h2><p>虽然我也是使用的框架，但hexo g的时候生成的网页并不能同时生成about和categories等index.html，暂时未解决此坑，欢迎各位交流经验。</p>
-<h3 id="此坑已填"><a href="#此坑已填" class="headerlink" title="此坑已填"></a>此坑已填</h3><p>最后，我根据<a href="http://forsigner.com/2016/03/10/fexo-doc-zh-cn/" target="_blank" rel="external">fexo主题官方文档</a>完成了填坑工作，这里就不细讲了。</p>
+<h1 id="6-如何使用theme"><a href="#6-如何使用theme" class="headerlink" title="6.如何使用theme"></a>6.如何使用theme</h1><p>从各种渠道可以获取到hexo的<a href="https://hexo.io/themes/" target="_blank" rel="external">主题</a>，下载zip压缩包到本地，并可以自行命名文件夹（例如我把新的主题命名为fexo）。<br>将文件夹拷贝到blog/theme目录下，更新blog目录下的_config.yml文件中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># Extensions</div><div class="line">## Plugins: https://hexo.io/plugins/</div><div class="line">##Themes: https://hexo.io/themes/</div><div class="line">theme: fexo</div></pre></td></tr></table></figure><br>更改theme标签，例如我要使用的新标签fexo，记住冒号“：”之后有空格。<br>最后，更改主题根目录下的_config.yml文件相关信息，重新生成网页，即可得到自己的网页。</p>
+<h1 id="7-如何绑定自己的域名到github"><a href="#7-如何绑定自己的域名到github" class="headerlink" title="7.如何绑定自己的域名到github"></a>7.如何绑定自己的域名到github</h1><p>方法其实很简单，在本地得xxx.github.io根目录下新建一个txt文件，文件里写不带http开头的域名，例如：jiacy.top。重命名文件为“CNAME”，并去掉后缀名。<br>另外，需要在自己的域名解析中添加两条cname记录。<br>主机记录分别填：@和www<br>记录值填：xxx.github.io<br>等待记录生效即可。</p>
+<h2 id="7-1-如何让自己的域名添加上https协议"><a href="#7-1-如何让自己的域名添加上https协议" class="headerlink" title="7.1 如何让自己的域名添加上https协议"></a>7.1 如何让自己的域名添加上https协议</h2><p>这里再次用到第三方服务，<a href="https://app.netlify.com/" target="_blank" rel="external">Netlify</a>提供了一个加密协议，把github上的xxx.github.io库引导到这个网站上，此网站会生成一个新的网址，例如我的是jiacy.netlify.com。<br>此时，更改之前的cname记录值为：jiacy.netlify.com<br>再次等待记录生效即可。<br>具体流程参看<a href="https://jaeger.itscoder.com/web/2017/08/30/github-page-https" target="_blank" rel="external">写代码的猴子</a>的帖子。</p>
+<h1 id="8-未填埋的坑"><a href="#8-未填埋的坑" class="headerlink" title="8.未填埋的坑"></a>8.未填埋的坑</h1><p>虽然我也是使用的框架，但hexo g的时候生成的网页并不能同时生成about和categories等index.html，暂时未解决此坑，欢迎各位交流经验。</p>
+<h2 id="8-1-此坑已填"><a href="#8-1-此坑已填" class="headerlink" title="8.1 此坑已填"></a>8.1 此坑已填</h2><p>最后，我根据<a href="http://forsigner.com/2016/03/10/fexo-doc-zh-cn/" target="_blank" rel="external">fexo主题官方文档</a>完成了填坑工作，这里就不细讲了。</p>
 <blockquote><p>转载请注明出处，无偿提供。</p>
 <footer><strong>@Jiacy</strong><cite><a href="http://jiacy.top">jiacy.top</a></cite></footer></blockquote>
 
