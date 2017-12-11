@@ -7,30 +7,26 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Apache服务器无法启动的故障 | Jiacy | 影子</title>
+  <title>VPS防止SSH暴力登录尝试攻击 | Jiacy | 影子</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Apache,服务器故障," />
+    <meta name="keywords" content="SSH,网络攻击," />
   
 
-  <meta name="description" content="0.前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 1.apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apach">
-<meta name="keywords" content="Apache,服务器故障">
+  <meta name="description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。接下来，在此讨论一下如何防止SSH暴力登录尝">
+<meta name="keywords" content="SSH,网络攻击">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Apache服务器无法启动的故障">
-<meta property="og:url" content="http://jiacy.top/2017/10/28/apache_error/index.html">
+<meta property="og:title" content="VPS防止SSH暴力登录尝试攻击">
+<meta property="og:url" content="http://jiacy.top/2017/12/11/vps-ssh-login-attempts-attack/index.html">
 <meta property="og:site_name" content="Jiacy | 影子">
-<meta property="og:description" content="0.前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 1.apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apach">
+<meta property="og:description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。接下来，在此讨论一下如何防止SSH暴力登录尝">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://jiacy.top/images/171028_img1.png">
-<meta property="og:image" content="http://jiacy.top/images/171028_img2.png">
-<meta property="og:image" content="http://jiacy.top/images/171028_img3.png">
-<meta property="og:updated_time" content="2017-11-08T11:19:23.207Z">
+<meta property="og:updated_time" content="2017-12-11T12:39:29.113Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Apache服务器无法启动的故障">
-<meta name="twitter:description" content="0.前言今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacy.me域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 1.apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apach">
-<meta name="twitter:image" content="http://jiacy.top/images/171028_img1.png">
+<meta name="twitter:title" content="VPS防止SSH暴力登录尝试攻击">
+<meta name="twitter:description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。接下来，在此讨论一下如何防止SSH暴力登录尝">
 
   
 
@@ -177,22 +173,17 @@
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-apache死亡的原因"><span class="toc-text">1.apache死亡的原因</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-结语"><span class="toc-text">3.结语</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Tips"><span class="toc-text">Tips</span></a></li></ol></li></ol>
-  </div>
-
 
 
 <div class="content content-post CENTER">
-   <article id="post-apache_error" class="article article-type-post" itemprop="blogPost">
+   <article id="post-vps-ssh-login-attempts-attack" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">Apache服务器无法启动的故障</h1>
+    <h1 class="post-title">VPS防止SSH暴力登录尝试攻击</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2017.10.28</span>
+        <span>2017.12.11</span>
       </span>
 
       
@@ -227,21 +218,12 @@
 
   <div class="article-content">
     
-      <h1 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h1><p>今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的<a href="http://www.jiacy.me" target="_blank" rel="external">jiacy.me</a>域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。</p>
-<h1 id="1-apache死亡的原因"><a href="#1-apache死亡的原因" class="headerlink" title="1.apache死亡的原因"></a>1.apache死亡的原因</h1><ul>
-<li>我使用“./etc/init.d/apache2 start”或者“./etc/init.d/apache2 restart”尝试重启的时候，报了如下错误，但stop功能正常：<br><img src="/images/171028_img1.png" alt=""></li>
-<li>根据提示，我使用了”journalctl -xe”命令查看细节，如图：<br><img src="/images/171028_img2.png" alt=""></li>
-<li>根据Error后的问题猜测，应该是跟使用root用户启动产生的问题，于是采用普通用户尝试重启apache服务，依旧失败：<br><img src="/images/171028_img3.png" alt=""></li>
-<li>上网搜寻相关资料，找到如下帖子：<br><a href="https://github.com/chardek/docker-websvn/issues/1" target="_blank" rel="external">error while starting apache as root</a><br><a href="https://github.com/GrahamDumpleton/mod_wsgi/issues/100" target="_blank" rel="external">Apache has not been designed to serve pages while\n\trunning as root.</a><br>虽然英语水平有限，但凭借google翻译+自身有限的英语，大概是由于apache的设计原因，不推荐使用root用户启动apache服务。详细的解决方案，我是在以下帖子找到的：<br><a href="https://forums.cpanel.net/threads/apache-wont-start-httpd-configtest-wont-run-as-root.58650/" target="_blank" rel="external">Apache won’t start - httpd configtest won’t run as root??</a></li>
-<li>结合图二的错误信息，对/etc/apache2/apache2.conf文件进行了查看，在第109行找到如下代码：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># 2.These need to be set in /etc/apache2/envvars</div><div class="line">User root</div><div class="line">Group root</div></pre></td></tr></table></figure>
-回想起，这不知道是我什么时候动过的一行代码，不禁恍然大悟。把root改为普通用户之后，重启apache服务，问题解决！又可以重新访问我的网站了，又可以为广大网友提供奇奇怪怪的下载了！喜大普奔~</li>
-</ul>
-<h1 id="3-结语"><a href="#3-结语" class="headerlink" title="3.结语"></a>3.结语</h1><p>英语真的很重要，不然google翻译多尴尬嘛！以及首次尝试在文章中加入图片！</p>
-<h2 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h2><ul>
-<li>图片看不清的话，可以在图片上方点击右键，在新的标签页中打开查看。</li>
+      <p>没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。<br>现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。<br>接下来，在此讨论一下如何防止SSH暴力登录尝试攻击。</p>
+<ul>
+<li>待更新……</li>
 </ul>
 <blockquote><p>转载请注明出处，无偿提供。</p>
-<footer><strong>@Jiacy</strong><cite><a href="http://jiacy.top">jiacy.top</a></cite></footer></blockquote>
+<footer><strong>@Jiacy [https://jiacyer.com]</strong></footer></blockquote>
 
     
   </div>
@@ -271,10 +253,10 @@
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2017/10/24/QQ图片防撤回解密教程/">
+    <a class="show pull-left" href="/2017/10/28/apache_error/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2017/12/11/vps-ssh-login-attempts-attack/">
+    <a class="hide pull-right" href="/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
