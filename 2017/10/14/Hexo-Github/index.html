@@ -19,11 +19,11 @@
 <meta name="keywords" content="Hexo,github,搭建博客">
 <meta property="og:type" content="article">
 <meta property="og:title" content="利用hexo在github上搭建简单博客的入坑记">
-<meta property="og:url" content="http://jiacy.top/2017/10/14/Hexo-Github/index.html">
+<meta property="og:url" content="http://jiacyer.com/2017/10/14/Hexo-Github/index.html">
 <meta property="og:site_name" content="Jiacy | 影子">
 <meta property="og:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 0.Hexo0.1 简介Hexo 是一款基于Node.js、快速、简">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-12-12T07:16:06.570Z">
+<meta property="og:updated_time" content="2017-12-25T11:07:06.220Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="利用hexo在github上搭建简单博客的入坑记">
 <meta name="twitter:description" content="一开始是想利用worldpress在自己的服务器上搭建博客的，但界面过于丑陋且不便于维护，再加上美帝的服务器只有一年的使用时间，所以我选择了在github上通过建立仓库的形式搭建博客。寻找了一圈，发现常用的是jekyll和Hexo两种便捷的github博客搭建框架，尝试一圈后发现，jekll也比较难看，所以最后入了hexo的坑。 0.Hexo0.1 简介Hexo 是一款基于Node.js、快速、简">
@@ -56,20 +56,20 @@
 
 
   
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
 
 
 
@@ -255,7 +255,7 @@
 <h1 id="8-未填埋的坑"><a href="#8-未填埋的坑" class="headerlink" title="8.未填埋的坑"></a>8.未填埋的坑</h1><p>虽然我也是使用的框架，但hexo g的时候生成的网页并不能同时生成about和categories等index.html，暂时未解决此坑，欢迎各位交流经验。</p>
 <h2 id="8-1-此坑已填"><a href="#8-1-此坑已填" class="headerlink" title="8.1 此坑已填"></a>8.1 此坑已填</h2><p>最后，我根据<a href="http://forsigner.com/2016/03/10/fexo-doc-zh-cn/" target="_blank" rel="external">fexo主题官方文档</a>完成了填坑工作，这里就不细讲了。</p>
 <blockquote><p>转载请注明出处，无偿提供。</p>
-<footer><strong>@Jiacy</strong><cite><a href="http://jiacy.top">jiacy.top</a></cite></footer></blockquote>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com" target="_blank" rel="external">jiacyer.com</a></cite></footer></blockquote>
 
     
   </div>
@@ -304,6 +304,14 @@
   <a id="backTop" class="back-top">
     <i class="icon-angle-up"></i>
   </a>
+
+
+
+<div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
 
 
 <!--<div width="100%" align="center">
@@ -433,9 +441,11 @@
 
 
 
-    <footer>
-  <p class="myFooter">© 2017 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
-</footer>
+    <div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
 
   </div>
 

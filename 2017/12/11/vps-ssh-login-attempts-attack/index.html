@@ -19,7 +19,7 @@
 <meta name="keywords" content="SSH,网络攻击">
 <meta property="og:type" content="article">
 <meta property="og:title" content="VPS防止SSH暴力登录尝试攻击">
-<meta property="og:url" content="http://jiacy.top/2017/12/11/vps-ssh-login-attempts-attack/index.html">
+<meta property="og:url" content="http://jiacyer.com/2017/12/11/vps-ssh-login-attempts-attack/index.html">
 <meta property="og:site_name" content="Jiacy | 影子">
 <meta property="og:description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。接下来，在此讨论一下如何防止SSH暴力登录尝">
 <meta property="og:locale" content="zh-CN">
@@ -56,20 +56,20 @@
 
 
   
-  <script type="text/javascript">
-	(function(){
-	    var bp = document.createElement('script');
-	    var curProtocol = window.location.protocol.split(':')[0];
-	    if (curProtocol === 'https') {
-	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-	    }
-	    else {
-	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-	    }
-	    var s = document.getElementsByTagName("script")[0];
-	    s.parentNode.insertBefore(bp, s);
-	})();
-  </script>
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
 
 
 
@@ -274,6 +274,14 @@
   </a>
 
 
+
+<div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+
 <!--<div width="100%" align="center">
 <div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
 <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
@@ -401,9 +409,11 @@
 
 
 
-    <footer>
-  <p class="myFooter">© 2017 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
-</footer>
+    <div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
 
   </div>
 
