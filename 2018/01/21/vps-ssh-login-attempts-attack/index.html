@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>VPS防止SSH暴力登录尝试攻击 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="SSH,网络攻击," />
+  
+
+  <meta name="description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。　　现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。　　接下来，在此讨论一下如何防止SS">
+<meta name="keywords" content="SSH,网络攻击">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VPS防止SSH暴力登录尝试攻击">
+<meta property="og:url" content="http://jiacyer.com/2018/01/21/vps-ssh-login-attempts-attack/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。　　现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。　　接下来，在此讨论一下如何防止SS">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img0.png">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img1.png">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img2.png">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img3.png">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img4.png">
+<meta property="og:image" content="http://jiacyer.com/images/180121_img5.png">
+<meta property="og:updated_time" content="2018-01-21T15:47:49.445Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VPS防止SSH暴力登录尝试攻击">
+<meta name="twitter:description" content="没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。　　现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。　　接下来，在此讨论一下如何防止SS">
+<meta name="twitter:image" content="http://jiacyer.com/images/180121_img0.png">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x00-2018更新"><span class="toc-text">0x00 2018更新</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02-防御手段——使用RSA公私钥登陆"><span class="toc-text">0x02 防御手段——使用RSA公私钥登陆</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x03-防御手段——安装denyhosts"><span class="toc-text">0x03 防御手段——安装denyhosts</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x04-总结"><span class="toc-text">0x04 总结</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-vps-ssh-login-attempts-attack" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">VPS防止SSH暴力登录尝试攻击</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.01.21</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>　　没想到作为一个梯子和个人小型网页的VPS服务器，居然遭受到来个中国多个IP的SSH暴力登陆尝试攻击，心情复杂。当晚紧急下线服务器，停止了一切服务的提供，由于无法快捷更换IP地址，且原本服务器的MySQL服务异常，无法执行apt-get指令，所以只能选择整个服务器进行重置并更换了服务器机房。<br>　　现在所有功能，除下载功能外，其他均以恢复正常，老域名暂时停止使用。<br>　　接下来，在此讨论一下如何防止SSH暴力登录尝试攻击。</p>
+<h1 id="0x00-2018更新"><a href="#0x00-2018更新" class="headerlink" title="0x00 2018更新"></a>0x00 2018更新</h1><p>　　没错，在17年12月11日，我在复习Linux并尝试修复MySql的时候，无意中发现服务器的日志出现了如下的log(没有截图了，下面的log是我从别的博客搬运过来的)。万万没想到，我一个弱鸡的服务器居然被盯上了。于是下决心重置了服务器并从新搭建，然而并没有阻止他们，估计是盯上我的域名了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">Apr 11 11:10:05 kof sshd[18518]: Failed password for root from 1.226.82.197 port 36824 ssh2</div><div class="line">Apr 11 11:10:10 kof sshd[18520]: Failed password for root from 1.226.82.197 port 36966 ssh2</div><div class="line">Apr 11 11:10:15 kof sshd[18522]: Failed password for root from 1.226.82.197 port 37132 ssh2</div><div class="line">Apr 11 11:10:19 kof sshd[18524]: Failed password for root from 1.226.82.197 port 37326 ssh2</div><div class="line">Apr 11 11:10:24 kof sshd[18528]: Failed password for root from 1.226.82.197 port 37476 ssh2</div><div class="line">Apr 11 11:10:29 kof sshd[18535]: Failed password for root from 1.226.82.197 port 37642 ssh2</div><div class="line">Apr 11 11:10:34 kof sshd[18537]: Failed password for root from 1.226.82.197 port 37819 ssh2</div><div class="line">Apr 11 11:10:39 kof sshd[18539]: Failed password for root from 1.226.82.197 port 38023 ssh2</div><div class="line">Apr 11 11:10:44 kof sshd[18541]: Failed password for root from 1.226.82.197 port 38200 ssh2</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>  使用如下指令查看哪些IP地址在尝试登陆我的服务器：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo grep &quot;Failed password for invalid user&quot; /var/log/auth.log | awk &apos;&#123;print $13&#125;&apos; | sort | uniq -c | sort -nr | more</div></pre></td></tr></table></figure></p>
+<p>  结果发现，这个IP地址多来自于河北保定，也有来自法国等地的，可见是肉鸡。</p>
+<p>#　0x01 防御手段——更改非常用端口<br>  编辑位于/etc/ssh目录下的sshd_config文件，例如改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Port 2333</div><div class="line">PermitRootLogin no</div></pre></td></tr></table></figure></p>
+<p>  保存并重启ssh服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo /etc/init.d/ssh restart</div></pre></td></tr></table></figure></p>
+<h1 id="0x02-防御手段——使用RSA公私钥登陆"><a href="#0x02-防御手段——使用RSA公私钥登陆" class="headerlink" title="0x02 防御手段——使用RSA公私钥登陆"></a>0x02 防御手段——使用RSA公私钥登陆</h1><p>  利用xshell的功能，生成RSA公私钥，并把公钥上传服务器。<br>  步骤如下：<br><img src="/images/180121_img0.png" alt=""><br><img src="/images/180121_img1.png" alt=""><br><img src="/images/180121_img2.png" alt=""><br><img src="/images/180121_img3.png" alt=""><br><img src="/images/180121_img4.png" alt=""><br><img src="/images/180121_img5.png" alt=""><br>  将生成的公钥上传至服务器根目录，在根目录新建.ssh目录，并更改sshd_config配置文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">$ mkdir .ssh</div><div class="line">$ mv id_rsa.pub authorized_keys #其中id_rsa.pub是刚才生成的公钥</div><div class="line">$ chmod 400 authorized_keys</div><div class="line">$ vim /etc/ssh/sshd_config</div><div class="line">####</div><div class="line">RSAAuthentication yes #RSA认证</div><div class="line">PubkeyAuthentication yes #开启公钥验证</div><div class="line">AuthorizedKeysFile %h/.ssh/authorized_keys #验证文件路径</div><div class="line">PasswordAuthentication no #禁止密码认证</div><div class="line">PermitEmptyPasswords no #禁止空密码</div><div class="line">UsePAM no #禁用PAM</div><div class="line">####</div><div class="line"># 最后保存，重启</div><div class="line">$ sudo /etc/init.d/ssh restart</div></pre></td></tr></table></figure></p>
+<p>  至此，密码登陆失效，只能用私钥登陆。</p>
+<h1 id="0x03-防御手段——安装denyhosts"><a href="#0x03-防御手段——安装denyhosts" class="headerlink" title="0x03 防御手段——安装denyhosts"></a>0x03 防御手段——安装denyhosts</h1><p>　　denyhosts 是 Python 语言写的一个程序，它会分析 sshd 的日志文件，当发现重复的失败登录时就会记录IP到/etc/hosts.deny文件，从而达到自动屏IP的功能。<br>  安装：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># Debian/Ubuntu：</div><div class="line">$ sudo apt-get install denyhosts</div><div class="line"># RedHat/CentOS</div><div class="line">$ yum install denyhosts</div><div class="line"># Archlinux</div><div class="line">$ yaourt denyhosts</div><div class="line"># Gentoo</div><div class="line">$ emerge -av denyhosts</div></pre></td></tr></table></figure></p>
+<p>  默认配置就可以了，如要个性化设置可以修改 /etc/denyhosts.conf ：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">$ vi /etc/denyhosts.conf</div><div class="line">SECURE_LOG = /var/log/auth.log #ssh 日志文件，它是根据这个文件来判断的。</div><div class="line">HOSTS_DENY = /etc/hosts.deny #控制用户登陆的文件</div><div class="line">PURGE_DENY = #过多久后清除已经禁止的，空表示永远不解禁</div><div class="line">BLOCK_SERVICE = sshd #禁止的服务名，如还要添加其他服务，只需添加逗号跟上相应的服务即可</div><div class="line">DENY_THRESHOLD_INVALID = 5 #允许无效用户失败的次数</div><div class="line">DENY_THRESHOLD_VALID = 10 #允许普通用户登陆失败的次数</div><div class="line">DENY_THRESHOLD_ROOT = 1 #允许root登陆失败的次数</div><div class="line">DENY_THRESHOLD_RESTRICTED = 1</div><div class="line">WORK_DIR = /var/lib/denyhosts #运行目录</div><div class="line">SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES</div><div class="line">HOSTNAME_LOOKUP=YES #是否进行域名反解析</div><div class="line">LOCK_FILE = /var/run/denyhosts.pid #程序的进程ID</div><div class="line">ADMIN_EMAIL = root@localhost #管理员邮件地址,它会给管理员发邮件</div><div class="line">SMTP_HOST = localhost</div><div class="line">SMTP_PORT = 25</div><div class="line">SMTP_FROM = DenyHosts &lt;nobody@localhost&gt;</div><div class="line">SMTP_SUBJECT = DenyHosts Report</div><div class="line">AGE_RESET_VALID=5d #用户的登录失败计数会在多久以后重置为0，(h表示小时，d表示天，m表示月，w表示周，y表示年)</div><div class="line">AGE_RESET_ROOT=25d</div><div class="line">AGE_RESET_RESTRICTED=25d</div><div class="line">AGE_RESET_INVALID=10d</div><div class="line">RESET_ON_SUCCESS = yes #如果一个ip登陆成功后，失败的登陆计数是否重置为0</div><div class="line">DAEMON_LOG = /var/log/denyhosts #自己的日志文件</div><div class="line">DAEMON_SLEEP = 30s #当以后台方式运行时，每读一次日志文件的时间间隔。</div><div class="line">DAEMON_PURGE = 1h #当以后台方式运行时，清除机制在 HOSTS_DENY 中终止旧条目的时间间隔,这个会影响PURGE_DENY的间隔。</div></pre></td></tr></table></figure></p>
+<p>  查看我的 /etc/hosts.deny 文件，有如下数十条记录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">sshd: 121.18.238.125</div><div class="line">sshd: 121.18.238.39</div><div class="line">sshd: 110.53.183.227</div><div class="line">sshd: 172.247.164.40</div><div class="line">sshd: 198.98.50.113</div><div class="line">……</div></pre></td></tr></table></figure></p>
+<p>  使用如下指令统计了一下，总共82条记录，说明我的服务器遭受到多么惨烈的攻击。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ sudo cat /etc/hosts.deny | wc -l</div><div class="line">82</div></pre></td></tr></table></figure></p>
+<h1 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h1><p>  虽然也不是什么高深的技术，但保护自己的服务器还是挺重要的，安全第一。</p>
+<blockquote><p>参考贴来源：<a href="https://www.lovelucy.info/vps-anti-ssh-login-attempts-attack.html" target="_blank" rel="external">VPS 防止 SSH 暴力登录尝试攻击  作者：lovelucy</a></p>
+<footer><strong>转载说明</strong></footer></blockquote>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/01/16/chrome-hsts-error/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+    <div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
