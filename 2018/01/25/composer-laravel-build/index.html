@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>最不知所云的Laravel框架安装坑记 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Laravel," />
+  
+
+  <meta name="description" content="0.前言　　网上其实有很多过来人的教程，可是由于技术更迭太快，很多教程已经跟最新的Laravel脱轨了。大家不妨参考一下我的踩坑经历，不然枉费了一天的时间，不甘心啊。 1.我的服务器　　我的服务器是安装的LAMP套装，即 Linux + Apache2 + MySql + PHP7.0。满足最新的Laravel框架的基本要求。 2.准备工作　　根据Laravel官方文档所说，建议您使用Homest">
+<meta name="keywords" content="Laravel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="最不知所云的Laravel框架安装坑记">
+<meta property="og:url" content="http://jiacyer.com/2018/01/25/composer-laravel-build/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="0.前言　　网上其实有很多过来人的教程，可是由于技术更迭太快，很多教程已经跟最新的Laravel脱轨了。大家不妨参考一下我的踩坑经历，不然枉费了一天的时间，不甘心啊。 1.我的服务器　　我的服务器是安装的LAMP套装，即 Linux + Apache2 + MySql + PHP7.0。满足最新的Laravel框架的基本要求。 2.准备工作　　根据Laravel官方文档所说，建议您使用Homest">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img1.png">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img2.png">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img3.png">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img4.png">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img5.png">
+<meta property="og:image" content="http://jiacyer.com/images/1801/180125_img6.jpg">
+<meta property="og:updated_time" content="2018-01-25T13:31:08.878Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="最不知所云的Laravel框架安装坑记">
+<meta name="twitter:description" content="0.前言　　网上其实有很多过来人的教程，可是由于技术更迭太快，很多教程已经跟最新的Laravel脱轨了。大家不妨参考一下我的踩坑经历，不然枉费了一天的时间，不甘心啊。 1.我的服务器　　我的服务器是安装的LAMP套装，即 Linux + Apache2 + MySql + PHP7.0。满足最新的Laravel框架的基本要求。 2.准备工作　　根据Laravel官方文档所说，建议您使用Homest">
+<meta name="twitter:image" content="http://jiacyer.com/images/1801/180125_img1.png">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-我的服务器"><span class="toc-text">1.我的服务器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-准备工作"><span class="toc-text">2.准备工作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-安装Composer"><span class="toc-text">3.安装Composer</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-下载Composer"><span class="toc-text">3.1.下载Composer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-局部安装"><span class="toc-text">3.2.局部安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-全局安装"><span class="toc-text">3.3.全局安装</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-安装Laravel"><span class="toc-text">4.安装Laravel</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-通过-Laravel-安装器"><span class="toc-text">4.1.通过 Laravel 安装器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-通过-Composer-创建项目"><span class="toc-text">4.2.通过 Composer 创建项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-如何让服务器显示Lavarel主页"><span class="toc-text">4.3.如何让服务器显示Lavarel主页</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-坑记"><span class="toc-text">5.坑记</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-composer-laravel-build" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">最不知所云的Laravel框架安装坑记</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.01.25</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h1><p>　　网上其实有很多过来人的教程，可是由于技术更迭太快，很多教程已经跟最新的Laravel脱轨了。大家不妨参考一下我的踩坑经历，不然枉费了一天的时间，不甘心啊。</p>
+<h1 id="1-我的服务器"><a href="#1-我的服务器" class="headerlink" title="1.我的服务器"></a>1.我的服务器</h1><p>　　我的服务器是安装的LAMP套装，即 Linux + Apache2 + MySql + PHP7.0。满足最新的Laravel框架的基本要求。</p>
+<h1 id="2-准备工作"><a href="#2-准备工作" class="headerlink" title="2.准备工作"></a>2.准备工作</h1><p>　　根据<a href="https://laravel.com/docs/5.5" target="_blank" rel="external">Laravel官方文档</a>所说，建议您使用Homestead作为您本地的Laravel开发环境。<br>　　但是，如果您不使用Homestead，则需要确保您的服务器符合以下要求：</p>
+<ul>
+<li>PHP&gt; = 7.0.0</li>
+<li>OpenSSL PHP扩展</li>
+<li>PDO PHP扩展</li>
+<li>Mbstring PHP扩展</li>
+<li>Tokenizer PHP扩展</li>
+<li>XML PHP扩展<br>　　安装相关扩展，可以参考iloveyougirls的<a href="http://blog.csdn.net/iloveyougirls/article/details/74276548" target="_blank" rel="external">ubuntu16.04安装PHP7.0的laravel必须扩展</a>，这里就不再介绍。</li>
+</ul>
+<h1 id="3-安装Composer"><a href="#3-安装Composer" class="headerlink" title="3.安装Composer"></a>3.安装Composer</h1><blockquote><p>安装前请务必确保已经正确安装了 PHP。打开命令行窗口并执行 php -v 查看是否正确输出版本号。</p>
+</blockquote>
+<h2 id="3-1-下载Composer"><a href="#3-1-下载Composer" class="headerlink" title="3.1.下载Composer"></a>3.1.下载Composer</h2><p>　　打开命令行并依次执行下列命令安装最新版本的 Composer：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">php -r &quot;copy(&apos;https://install.phpcomposer.com/installer&apos;, &apos;composer-setup.php&apos;);&quot;</div><div class="line">php composer-setup.php</div><div class="line">php -r &quot;unlink(&apos;composer-setup.php&apos;);&quot;</div></pre></td></tr></table></figure></p>
+<p>　　执行第一条命令下载下来的 composer-setup.php 脚本将简单地检测 php.ini 中的参数设置，如果某些参数未正确设置则会给出警告；然后下载最新版本的 composer.phar 文件到当前目录。<br>　　上述 3 条命令的作用依次是：</p>
+<ul>
+<li>下载安装脚本 － composer-setup.php － 到当前目录。</li>
+<li>执行安装过程。</li>
+<li>删除安装脚本。</li>
+</ul>
+<h2 id="3-2-局部安装"><a href="#3-2-局部安装" class="headerlink" title="3.2.局部安装"></a>3.2.局部安装</h2><p>　　上述下载 Composer 的过程正确执行完毕后，可以将 composer.phar 文件复制到任意目录（比如项目根目录下），然后通过 php composer.phar 指令即可使用 Composer 了！</p>
+<h2 id="3-3-全局安装"><a href="#3-3-全局安装" class="headerlink" title="3.3.全局安装"></a>3.3.全局安装</h2><p>　　全局安装是将 Composer 安装到系统环境变量 PATH 所包含的路径下面，然后就能够在命令行窗口中直接执行 composer 命令了。</p>
+<ul>
+<li><p>Mac 或 Linux 系统：<br>　　打开命令行窗口并执行如下命令将前面下载的 composer.phar 文件移动到 /usr/local/bin/ 目录下面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo mv composer.phar /usr/local/bin/composer</div></pre></td></tr></table></figure>
+</li>
+<li><p>Windows 系统：</p>
+<blockquote><p>1、找到并进入 PHP 的安装目录（和你在命令行中执行的 php 指令应该是同一套 PHP）。<br>2、将 composer.phar 复制到 PHP 的安装目录下面，也就是和 php.exe 在同一级目录。<br>3、在 PHP 安装目录下新建一个 composer.bat 文件，并将下列代码保存到此文件中。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@php &quot;%~dp0composer.phar&quot; %*</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>　　最后重新打开一个命令行窗口试一试执行 composer –version 看看是否正确输出版本号。</p>
+<ul>
+<li>最后<blockquote><p>提示：不要忘了经常执行 composer selfupdate 以保持 Composer 一直是最新版本哦！</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="4-安装Laravel"><a href="#4-安装Laravel" class="headerlink" title="4.安装Laravel"></a>4.安装Laravel</h1><p>　　Composer安装倒是很简单，但Laravel的安装就是坑的所在。<br>　　Laravel 利用 Composer 来管理依赖。所以，在使用 Laravel 之前，请确保你的机器上安装了 Composer。</p>
+<h2 id="4-1-通过-Laravel-安装器"><a href="#4-1-通过-Laravel-安装器" class="headerlink" title="4.1.通过 Laravel 安装器"></a>4.1.通过 Laravel 安装器</h2><p>　　首先，使用 Composer 下载 Laravel 安装程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">composer global require &quot;laravel/installer&quot;</div></pre></td></tr></table></figure></p>
+<p>　　确保 $HOME/.composer/vendor/bin 目录（或你的操作系统的等效目录）已经放在你的环境变量 $PATH 中，以便系统可以找到 laravel 的可执行文件。通过以上安装composer，我本地的要添加的composer目录为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/home/jiacy/.config/composer/vendor/bin</div></pre></td></tr></table></figure></p>
+<p>　　因此我把此bin目录添加到/etc/profile 和 ~/.bashrc文件中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">export PATH=/home/jiacy/.config/composer/vendor/bin:$PATH</div></pre></td></tr></table></figure></p>
+<p>　　执行source /etc/profile 和source ~/.bashrc让环境立即生效。<br>　　一旦安装完成后，可以在终端$ laravel -v<br>　　可以使用 laravel new 命令在你指定的目录中建立一份全新安装的 Laravel 应用。例如： laravel new blog 命令会在当前目录下建立一个名为 blog 的目录， 此目录里面存放着全新安装的 Laravel ，并且所有依赖包也已经安装好了。此方法的安装速度会比通过 Composer 安装快很多。</p>
+<h2 id="4-2-通过-Composer-创建项目"><a href="#4-2-通过-Composer-创建项目" class="headerlink" title="4.2.通过 Composer 创建项目"></a>4.2.通过 Composer 创建项目</h2><p>　　或者，你还可以通过在终端中运行 create-project 命令来安装 Laravel：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">composer create-project --prefer-dist laravel/laravel blog</div></pre></td></tr></table></figure></p>
+<h2 id="4-3-如何让服务器显示Lavarel主页"><a href="#4-3-如何让服务器显示Lavarel主页" class="headerlink" title="4.3.如何让服务器显示Lavarel主页"></a>4.3.如何让服务器显示Lavarel主页</h2><p>　　安装 Laravel 之后，你要将 Web 服务器的根目录指向 public 目录。例如，在/etc/apache2/site-availible目录下新建一个.conf文件，并将虚拟主机的域名自定义（例如我自定义为 test.jiacyer.com ）。该目录下的 index.php 文件将作为所有进入应用程序的 HTTP 请求的前端控制器。</p>
+<h1 id="5-坑记"><a href="#5-坑记" class="headerlink" title="5.坑记"></a>5.坑记</h1><p>　　看起来是不是并不难？然而我却遇到了如下的事情。<br>　　各种 Cannot create cache directory 或者 权限不足 问题。如下：<br><img src="/images/1801/180125_img1.png" alt=""><br>　　然后，就是各种安装过程中的Killed，明显是安装失败了，如下：<br><img src="/images/1801/180125_img2.png" alt=""><br>　　听从大佬的建议，重启了服务器，然后关闭apache服务和mysql服务，重新安装 Laravel 并出现以下报错：<br><img src="/images/1801/180125_img3.png" alt=""><br>　　是由于缺少 php7.0-zip 扩展造成的，使用如下指令安装即可：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install php7.0-zip</div></pre></td></tr></table></figure></p>
+<p>　　最后，执行 composer global require “laravel/installer” 重新安装 Laravel 终于成功，如下图所示：<br><img src="/images/1801/180125_img4.png" alt=""><br>　　laravel -v 即可查看 Laravel 版本。通过 laravel new blog 即可新建项目：<br><img src="/images/1801/180125_img5.png" alt=""><br>　　此时在浏览器中输入 test.jiacyer.com 就可访问到主页：<br><img src="/images/1801/180125_img6.jpg" alt=""></p>
+<blockquote><p>参考贴来源：<br><a href="http://blog.csdn.net/yc1022/article/details/54580716" target="_blank" rel="external">ubuntu16.04 安装composer和 laravel  作者：yanchengyc</a><br><a href="https://pkg.phpcomposer.com/" target="_blank" rel="external">Packagist/Composer 中国全量镜像</a></p>
+<footer><strong>转载说明</strong></footer></blockquote>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/01/21/vps-ssh-login-attempts-attack/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+    <div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
