@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>通过GitHub同步服务器和本地的Laravel项目 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Laravel,Git," />
+  
+
+  <meta name="description" content="0.前言　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天…… 1.在服务器上建立一个 Laravel 项目　　这个操作已经在上一篇">
+<meta name="keywords" content="Laravel,Git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过GitHub同步服务器和本地的Laravel项目">
+<meta property="og:url" content="http://jiacyer.com/2018/01/28/Git-Making-synchronous/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="0.前言　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天…… 1.在服务器上建立一个 Laravel 项目　　这个操作已经在上一篇">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-01-28T11:26:22.819Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="通过GitHub同步服务器和本地的Laravel项目">
+<meta name="twitter:description" content="0.前言　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天…… 1.在服务器上建立一个 Laravel 项目　　这个操作已经在上一篇">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-在服务器上建立一个-Laravel-项目"><span class="toc-text">1.在服务器上建立一个 Laravel 项目</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Git-相关操作"><span class="toc-text">2.Git 相关操作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-Git-常用指令"><span class="toc-text">3.Git 常用指令</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-总结"><span class="toc-text">4.总结</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Git-Making-synchronous" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">通过GitHub同步服务器和本地的Laravel项目</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.01.28</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h1><p>　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天……</p>
+<h1 id="1-在服务器上建立一个-Laravel-项目"><a href="#1-在服务器上建立一个-Laravel-项目" class="headerlink" title="1.在服务器上建立一个 Laravel 项目"></a>1.在服务器上建立一个 Laravel 项目</h1><p>　　这个操作已经在上一篇文章中提及，就简单陈述一下，使用以下指令新建一个名为test的 Laravel 项目：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">laravel new test</div></pre></td></tr></table></figure></p>
+<h1 id="2-Git-相关操作"><a href="#2-Git-相关操作" class="headerlink" title="2.Git 相关操作"></a>2.Git 相关操作</h1><ul>
+<li>初始化 Git 本地仓库（服务器端）：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git init</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>　　此时，项目根目录下生成.git和.gitignore文件，建议在.gitignore文件中添加，忽略掉config文件夹下的配置信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/config</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p>添加所有更新后的文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git add .</div></pre></td></tr></table></figure>
+</li>
+<li><p>提交更新：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git commit -m &quot;first commit&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>关联 GitHub 仓库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git remote add origin https://github.com/your_usr_name/test.git</div></pre></td></tr></table></figure>
+</li>
+<li><p>pull请求，相当于fetch和merge的合并，但分步操作更保险</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">git pull origin master</div><div class="line"></div><div class="line"># 以下为fetch和merge指令</div><div class="line">git fetch origin # 取得远程更新（到origin/master），但还没有合并</div><div class="line">git merge origin/master # 把更新的内容（origin/master）合并到本地分支（master）</div></pre></td></tr></table></figure>
+</li>
+<li><p>push请求，将服务器上的项目推送到 GitHub 仓库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git push origin master</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>　　至此，服务器上的工作已经完成。<br>　　接下来，在本地pull一个项目的本地仓库，即可在本地进行开发。在本地测试完成之后，把代码push到 GitHub 上，在服务器上再次执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git pull origin master</div></pre></td></tr></table></figure></p>
+<p>　　即可轻松完成部署，比本地通过FTP上传来得更简单快捷，部署的速度也更快。</p>
+<h1 id="3-Git-常用指令"><a href="#3-Git-常用指令" class="headerlink" title="3.Git 常用指令"></a>3.Git 常用指令</h1><ul>
+<li>git init # 初始化本地Git版本库</li>
+<li>git add # 暂存文件，如果使用.表示当前目录及其子目录</li>
+<li>git commit -m “first commit” # 提交，-m选项后跟内容为提交所用的注释</li>
+<li>git remote -v # 查看当前项目远程连接的是哪个版本库地址</li>
+<li>git push origin master # 将本地项目提交到远程版本库</li>
+<li>git fetch origin # 取得远程更新（到origin/master），但还没有合并</li>
+<li>git merge origin/master # 把更新的内容（origin/master）合并到本地分支（master）</li>
+<li>git pull origin master # 相当于fetch和merge的合并，但分步操作更保险</li>
+</ul>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h1><p>　　不仅可以使用 <a href="https://github.com/" target="_blank" rel="external">GitHub</a> 这样的开源代码托管服务，也可以使用 <a href="https://bitbucket.org/" target="_blank" rel="external">BitBucket</a> 这样的可以免费创建 Private 仓库的代码托管服务，同样能完成以上工作。</p>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/01/25/composer-laravel-build/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+    <div class="myFooterDiv">
+  <footer class="myFooter">
+    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
