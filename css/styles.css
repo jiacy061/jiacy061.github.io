@@ -124,30 +124,37 @@
 	-moz-osx-font-smoothing: grayscale
 }
 
+/* 羽毛 */
 .icon-feather:before {
 	content: '\e800'
 }
 
+/* CC */
 .icon-cc:before {
 	content: '\e802'
 }
 
+/* 没看出来 */
 .icon-long:before {
 	content: '\e806'
 }
 
+/* < */
 .icon-angle-left:before {
 	content: '\e807'
 }
 
+/* doc文档行 */
 .icon-text:before {
 	content: '\e808'
 }
 
+/* 没看出来 */
 .icon-hu:before {
 	content: '\e809'
 }
 
+/* 微博 */
 .icon-weibo:before {
 	content: '\e80a'
 }
@@ -156,70 +163,87 @@
 	content: '\e80b'
 }
 
+/* 文档抽屉 */
 .icon-archive:before {
 	content: '\e80c'
 }
 
+/* 放大镜 */
 .icon-search:before {
 	content: '\e80d'
 }
 
+/* RSS */
 .icon-rss-2:before {
 	content: '\e80e'
 }
 
+/* 心 */
 .icon-heart:before {
 	content: '\e80f'
 }
 
+/* 没看出来 */
 .icon-zhu:before {
 	content: '\e810'
 }
 
+/* 人 */
 .icon-user-1:before {
 	content: '\e811'
 }
 
+/* 日历 */
 .icon-calendar-1:before {
 	content: '\e812'
 }
 
+/* 马 */
 .icon-ma:before {
 	content: '\e813'
 }
 
+/* 盒子 */
 .icon-box:before {
 	content: '\e814'
 }
 
+/* 房子 */
 .icon-home:before {
 	content: '\e815'
 }
 
+/* 鼠 */
 .icon-shu:before {
 	content: '\e816'
 }
 
+/* 计算器 */
 .icon-calendar:before {
 	content: '\e817'
 }
 
+/* 羊 */
 .icon-yang:before {
 	content: '\e818'
 }
 
+/* 空心人 */
 .icon-user:before {
 	content: '\e819'
 }
 
+/* i */
 .icon-info-circled-1:before {
 	content: '\e81a'
 }
+
 
 .icon-lsit:before {
 	content: '\e81b'
 }
 
+/* RSS */
 .icon-rss:before {
 	content: '\e81c'
 }
@@ -689,7 +713,7 @@ figure.highlight {
 }
 
 .content {
-	width: 500px;
+	width: 50%;
 	margin: 40px auto 80px;
 	border-left: 4px solid #f9f9f9
 }
@@ -1009,7 +1033,7 @@ html.dark .content-home .nav .item a:hover {
 
 @media screen and (min-width: 768px) {
 	.content.content-about {
-		width: 500px
+		width: 50%
 	}
 }
 
@@ -1132,7 +1156,7 @@ html.dark .content-home .nav .item a:hover {
 
 @media screen and (min-width: 768px) {
 	.content.content-search {
-		width: 500px
+		width: 50%
 	}
 }
 
@@ -1360,7 +1384,7 @@ html.dark .content-home .nav .item a:hover {
 
 @media screen and (min-width: 768px) {
 	.content.content-link {
-		width: 500px
+		width: 50%
 	}
 
 	.content.content-link hr {
@@ -1450,7 +1474,7 @@ html.dark .content-home .nav .item a:hover {
 
 @media screen and (min-width: 768px) {
 	.content.content-project {
-		width: 500px
+		width: 50%
 	}
 }
 
@@ -1635,7 +1659,7 @@ table td,table th {
 }
 
 .list-post {
-	line-height: 2.8em
+	line-height: 2.6em
 }
 
 .item-title {
