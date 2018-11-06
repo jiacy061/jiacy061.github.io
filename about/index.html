@@ -322,7 +322,7 @@
 
         
           <div class="text">
-            <span>© 2017-2018 ❤ Jiacy</span>
+            <span>© Since 2017 ❤ Jiacy</span>
             
               <a rel="noopener noreferrer" target="_blank" class="text-value-url" href=""></a>
             
@@ -356,7 +356,7 @@
 
 <div class="myFooterDiv">
   <footer class="myFooter">
-    <p>© 2017-2018 ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+    <p id="footer_text">© 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
   </footer>
 </div>
 
@@ -448,7 +448,8 @@
 
   
 
-  <script type="text/javascript">
+</body>
+<script type="text/javascript">
   function loadScript(url, callback) {
     var script = document.createElement('script')
     script.type = 'text/javascript';
@@ -475,8 +476,18 @@
     loadScript('/js/bundle.js?235683', function() {
       // load success
     });
+
+    // 更新页脚年份
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var today = new Date();
+    var nowYear = today.getFullYear();
+    str = str.replace("{$nowYear}", nowYear);
+    footer.innerHTML = str;
   }
+
+
+
 </script>
 
-</body>
 </html>
