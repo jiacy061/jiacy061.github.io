@@ -579,7 +579,7 @@
   
     <div class="myFooterDiv" style="position:relative; bottom:50px;">
   <footer class="myFooter">
-    <p id="footer_text">© 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
   </footer>
 </div>
 
@@ -614,13 +614,28 @@
       // load success
     });
 
-    // 更新页脚年份
     var footer = document.getElementById("footer_text");
     var str = footer.innerHTML;
-    var today = new Date();
-    var nowYear = today.getFullYear();
-    str = str.replace("{$nowYear}", nowYear);
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
     footer.innerHTML = str;
+    footer.style.color = "#dddddd";
   }
 
 

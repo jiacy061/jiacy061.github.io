@@ -87,7 +87,6 @@
   
 
   
-  
   <div class="content-home text-center">
   <a class="avatar" href="/">
     <img src="/images/avatar.jpg" alt="" />
@@ -163,7 +162,7 @@
       function i(){
         var rd = Math.random()
           x.clearRect(0,0,w,h)
-          q=[{x:0,y:h*rd+f},{x:0,y:h*rd-f}]
+          q=[{x:0,y:h/2*rd+h/4+f},{x:0,y:h/2*rd+h/4-f}]
           while(q[1].x<w+f) d(q[0], q[1])
       }
       function d(i,j){
@@ -181,7 +180,7 @@
           q[1] = {x:k,y:n}
       }
       function y(p){
-          var t = p + (z()*2-1.1)*f
+          var t = p + (z()*2-1)*f
           return (t>h||t<0) ? y(p) : t
       }
       document.onclick = i
@@ -288,7 +287,7 @@
   
     <div class="myFooterDiv" style="position:relative; bottom:50px;">
   <footer class="myFooter">
-    <p id="footer_text">© 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
   </footer>
 </div>
 
@@ -323,13 +322,28 @@
       // load success
     });
 
-    // 更新页脚年份
     var footer = document.getElementById("footer_text");
     var str = footer.innerHTML;
-    var today = new Date();
-    var nowYear = today.getFullYear();
-    str = str.replace("{$nowYear}", nowYear);
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
     footer.innerHTML = str;
+    footer.style.color = "#dddddd";
   }
 
 
