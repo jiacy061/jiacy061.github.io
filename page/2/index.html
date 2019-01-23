@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-home">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="一个爱折腾的Dreamer，只会写hello world的Coder；懒惰的Sofaman，不服输的Fighter。" />
+  
+
+  <meta name="description" content="一个爱折腾的Dreamer，只会写hello world的Coder；懒惰的Sofaman，不服输的Fighter。这是主页，更是梦。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Jiacy | 影子">
+<meta property="og:url" content="http://jiacyer.com/page/2/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="一个爱折腾的Dreamer，只会写hello world的Coder；懒惰的Sofaman，不服输的Fighter。这是主页，更是梦。">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jiacy | 影子">
+<meta name="twitter:description" content="一个爱折腾的Dreamer，只会写hello world的Coder；懒惰的Sofaman，不服输的Fighter。这是主页，更是梦。">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+
+  
+  <div class="content-home text-center">
+  <a class="avatar" href="/">
+    <img src="/images/avatar.jpg" alt="" />
+  </a>
+  <h1 class="name" style="font-family: calligraffittiregular">
+    Jiacy
+  </h1>
+  <div class="slogan">
+    一个爱折腾的Dreamer，只会写hello world的Coder；懒惰的Sofaman，不服输的Fighter。这是主页，更是梦。
+  </div>
+
+  <hr>
+
+  <ul class="text-center nav">
+    
+      <li class="item">
+        
+          <a href="/archives">Blog</a>
+        
+        <span>|</span>
+      </li>
+    
+      <li class="item">
+        
+          <a href="https://github.com/jiacy061" rel="noopener noreferrer" target="_blank">Github</a>
+        
+        <span>|</span>
+      </li>
+    
+      <li class="item">
+        
+          <a href="/about/">About</a>
+        
+        <span>|</span>
+      </li>
+    
+      <li class="item">
+        
+          <a href="http://more.jiacyer.com">More</a>
+        
+        <span>|</span>
+      </li>
+    
+  </ul>
+
+</div>
+
+  
+
+  <canvas></canvas>
+  <script type="text/javascript">
+      //首页丝带js
+      document.addEventListener('touchmove', function (e) {
+              e.preventDefault()
+          })
+      var c = document.getElementsByTagName('canvas')[0],
+          x = c.getContext('2d'),
+          //pr = window.devicePixelRatio || 1,
+          pr = 1,
+          w = window.innerWidth,
+          h = window.innerHeight,
+          f = 60,
+          q,
+          m = Math,
+          r = 0,
+          u = m.PI*2,
+          v = m.cos,
+          z = m.random
+      c.width = w*pr
+      c.height = h*pr - 50
+      x.scale(pr, pr)
+      x.globalAlpha = 0.6
+      function i(){
+        var rd = Math.random()
+          x.clearRect(0,0,w,h)
+          q=[{x:0,y:h/2*rd+h/4+f},{x:0,y:h/2*rd+h/4-f}]
+          while(q[1].x<w+f) d(q[0], q[1])
+      }
+      function d(i,j){
+          x.beginPath()
+          x.moveTo(i.x, i.y)
+          x.lineTo(j.x, j.y)
+          var k = j.x + (z()*2-0.25)*f,
+              n = y(j.y)
+          x.lineTo(k, n)
+          x.closePath()
+          r-=u/-50
+          x.fillStyle = '#'+(v(r)*127+128<<16 | v(r+u/3)*127+128<<8 | v(r+u/3*2)*127+128).toString(16)
+          x.fill()
+          q[0] = q[1]
+          q[1] = {x:k,y:n}
+      }
+      function y(p){
+          var t = p + (z()*2-1)*f
+          return (t>h||t<0) ? y(p) : t
+      }
+      document.onclick = i
+      document.ontouchstart = i
+      i()
+    </script>
+    <style>
+      .pv_uv_count{
+      color:white;
+      }
+    </style>
+
+
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>
