@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="Jiacy | 影子">
 <meta property="og:description" content="0.前言　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天…… 1.在服务器上建立一个 Laravel 项目　　这个操作已经在上一篇">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-01-28T11:26:22.819Z">
+<meta property="og:updated_time" content="2019-03-30T13:27:59.216Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="通过GitHub同步服务器和本地的Laravel项目">
 <meta name="twitter:description" content="0.前言　　学习如何使用 GitHub 是每一个程序员的必经之路，这次由于使用 Laravel 框架，在导致在本地测试和服务器部署的时候，有诸多不便。而使用 GitHub 同步本地和服务器是绝佳的方案之一，低成本、高效。由于本人比较菜，加上长期使用 Desktop 版的 GitHub ，不熟悉 Git 指令，又一次摸索了半天…… 1.在服务器上建立一个 Laravel 项目　　这个操作已经在上一篇">
@@ -241,7 +241,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git remote add origin https://github.com/your_usr_name/test.git</div></pre></td></tr></table></figure>
 </li>
 <li><p>pull请求，相当于fetch和merge的合并，但分步操作更保险</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">git pull origin master</div><div class="line"></div><div class="line"># 以下为fetch和merge指令</div><div class="line">git fetch origin # 取得远程更新（到origin/master），但还没有合并</div><div class="line">git merge origin/master # 把更新的内容（origin/master）合并到本地分支（master）</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">git pull origin master</div><div class="line">　　</div><div class="line"># 以下为fetch和merge指令</div><div class="line">git fetch origin # 取得远程更新（到origin/master），但还没有合并</div><div class="line">git merge origin/master # 把更新的内容（origin/master）合并到本地分支（master）</div></pre></td></tr></table></figure>
 </li>
 <li><p>push请求，将服务器上的项目推送到 GitHub 仓库</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git push origin master</div></pre></td></tr></table></figure>

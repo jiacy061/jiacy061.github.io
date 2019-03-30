@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Docker-compose一键部署前后端分离项目核心Nginx+Tomcat+MySQL | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Nginx,Spring,Tomcat,Docker,MySQL," />
+  
+
+  <meta name="description" content="0.前言　　近来感觉毕设做的东西太无聊，总是在没事的时候给自己找乐子。听说以前实验室的项目一般都是部署在Windows平台，但听我哥说公司一般都是部署在Linux上，所以我的计划也是部署在Linux上，最好是用Docker这种 Linux 容器解决方案，从而避免在不同设备上部署时环境差异带来的问题，感受一把丝般顺滑地部署体验。 1.为什么选择Docker　　Docker 将应用程序与该程序的依赖，">
+<meta name="keywords" content="Nginx,Spring,Tomcat,Docker,MySQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker-compose一键部署前后端分离项目核心Nginx+Tomcat+MySQL">
+<meta property="og:url" content="http://jiacyer.com/2019/03/30/docker-tomcat-nginx-mysql-springmvc/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="0.前言　　近来感觉毕设做的东西太无聊，总是在没事的时候给自己找乐子。听说以前实验室的项目一般都是部署在Windows平台，但听我哥说公司一般都是部署在Linux上，所以我的计划也是部署在Linux上，最好是用Docker这种 Linux 容器解决方案，从而避免在不同设备上部署时环境差异带来的问题，感受一把丝般顺滑地部署体验。 1.为什么选择Docker　　Docker 将应用程序与该程序的依赖，">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-30T13:30:33.127Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker-compose一键部署前后端分离项目核心Nginx+Tomcat+MySQL">
+<meta name="twitter:description" content="0.前言　　近来感觉毕设做的东西太无聊，总是在没事的时候给自己找乐子。听说以前实验室的项目一般都是部署在Windows平台，但听我哥说公司一般都是部署在Linux上，所以我的计划也是部署在Linux上，最好是用Docker这种 Linux 容器解决方案，从而避免在不同设备上部署时环境差异带来的问题，感受一把丝般顺滑地部署体验。 1.为什么选择Docker　　Docker 将应用程序与该程序的依赖，">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-为什么选择Docker"><span class="toc-text">1.为什么选择Docker</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-安装Docker并拉取有关镜像"><span class="toc-text">2.安装Docker并拉取有关镜像</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-从Ubuntu存储库安装Docker"><span class="toc-text">2.1.从Ubuntu存储库安装Docker</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-编写docker-compose配置文件"><span class="toc-text">3.编写docker-compose配置文件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-MySQL环境配置"><span class="toc-text">3.1.MySQL环境配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Nginx环境配置"><span class="toc-text">3.2.Nginx环境配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Tomcat环境配置"><span class="toc-text">3.3.Tomcat环境配置</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-结语"><span class="toc-text">4.结语</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-docker-tomcat-nginx-mysql-springmvc" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Docker-compose一键部署前后端分离项目核心Nginx+Tomcat+MySQL</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.03.30</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h1><p>　　近来感觉毕设做的东西太无聊，总是在没事的时候给自己找乐子。听说以前实验室的项目一般都是部署在<code>Windows</code>平台，但听我哥说公司一般都是部署在<code>Linux</code>上，所以我的计划也是部署在<code>Linux</code>上，最好是用<code>Docker</code>这种 Linux 容器解决方案，从而避免在不同设备上部署时环境差异带来的问题，感受一把丝般顺滑地部署体验。</p>
+<h1 id="1-为什么选择Docker"><a href="#1-为什么选择Docker" class="headerlink" title="1.为什么选择Docker"></a>1.为什么选择Docker</h1><p>　　Docker 将应用程序与该程序的依赖，打包在一个文件里面。运行这个文件，就会生成一个虚拟容器。程序在这个虚拟容器里运行，就好像在真实的物理机上运行一样。有了 Docker，就不用担心环境问题。<br>　　Docker 的接口相当简单，用户可以方便地创建和使用容器，把自己的应用放入容器。容器还可以进行版本管理、复制、分享、修改，就像管理普通的代码一样。<br>　　Docker 的主要用途，目前有三大类：</p>
+<ul>
+<li><code>提供一次性的环境</code>比如，本地测试他人的软件、持续集成的时候提供单元测试和构建的环境。</li>
+<li><code>提供弹性的云服务</code>因为 Docker 容器可以随开随关，很适合动态扩容和缩容。</li>
+<li><code>组建微服务架构</code>通过多个容器，一台机器可以跑多个服务，因此在本机就可以模拟出微服务架构。</li>
+</ul>
+<h1 id="2-安装Docker并拉取有关镜像"><a href="#2-安装Docker并拉取有关镜像" class="headerlink" title="2.安装Docker并拉取有关镜像"></a>2.安装Docker并拉取有关镜像</h1><p>　　这里以<code>Ubuntu 18.04</code>为例。</p>
+<h2 id="2-1-从Ubuntu存储库安装Docker"><a href="#2-1-从Ubuntu存储库安装Docker" class="headerlink" title="2.1.从Ubuntu存储库安装Docker"></a>2.1.从Ubuntu存储库安装Docker</h2><p>　　如果您想从Ubuntu存储库安装docker版本，则可以运行下面的apt命令。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt install docker.io</div></pre></td></tr></table></figure></p>
+<p>　　等到安装完成后，您可以启动Docker并使用systemctl命令将其添加到引导时间：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">systemctl start docker</div><div class="line">systemctl enable docker</div></pre></td></tr></table></figure></p>
+<p>　　您可能还想检查码头版本：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">docker --version</div><div class="line"><span class="meta">#</span> 执行得到如下结果</div><div class="line">Docker version 18.09.2, build 6247962</div></pre></td></tr></table></figure></p>
+<p>　　这表明Docker已成功安装。然后我们需要拉取所需的镜像，这里我写成了一个shell脚本：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">docker pull mysql:5.5.60</div><div class="line">　　</div><div class="line">docker pull nginx:1.13</div><div class="line">　　</div><div class="line">docker pull tomcat:8-jre8</div></pre></td></tr></table></figure></p>
+<p>　　通过<code>docker image ls</code>命令，我们可以看到如下的信息，说明镜像拉取成功：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</div><div class="line">tomcat              8-jre8              dd6ff929584a        3 weeks ago         463MB</div><div class="line">mysql               5.5.60              2cd7ceff3e53        8 months ago        205MB</div><div class="line">nginx               1.13                ae513a47849c        11 months ago       109MB</div></pre></td></tr></table></figure></p>
+<h1 id="3-编写docker-compose配置文件"><a href="#3-编写docker-compose配置文件" class="headerlink" title="3.编写docker-compose配置文件"></a>3.编写docker-compose配置文件</h1><p>　　我们首先需要安装Docker-Compose工具。Docker Compose是一个用来定义和运行复杂应用的Docker工具。一个使用Docker容器的应用，通常由多个容器组成。使用Docker Compose不再需要使用shell脚本来启动容器。<br>　　Compose 通过一个配置文件来管理多个Docker容器，在配置文件中，所有的容器通过services来定义，然后使用docker-compose脚本来启动，停止和重启应用，和应用中的服务以及所有依赖服务的容器，非常适合组合使用多个容器进行开发的场景。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose</div><div class="line">sudo chmod +x /usr/local/bin/docker-compose</div><div class="line">docker-compose --version</div></pre></td></tr></table></figure></p>
+<p>　　这里我先列出<code>docker-compose.yml</code>文件的内容，注意这个文件名必须是<code>docker-compose.yml</code>不可更改：<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="attr">version:</span> <span class="string">"3"</span></div><div class="line">　　</div><div class="line"><span class="attr">services:</span></div><div class="line"><span class="attr">  mysql:</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">mysql</span></div><div class="line"><span class="attr">    image:</span> <span class="attr">mysql:5.5.60</span></div><div class="line"><span class="attr">    restart:</span> <span class="string">always</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./data/mysql:/var/lib/mysql</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./config/mysql/mysqld.conf:/etc/mysql/mysql.conf.d/mysqld.cnf</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="number">6603</span><span class="string">:3306</span></div><div class="line"><span class="attr">    environment:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">MYSQL_ROOT_PASSWORD=admintest</span></div><div class="line"><span class="attr">  nginx:</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">nginx</span></div><div class="line"><span class="attr">    restart:</span> <span class="string">always</span></div><div class="line"><span class="attr">    image:</span> <span class="attr">nginx:1.13</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="number">80</span><span class="string">:80</span></div><div class="line"><span class="bullet">      -</span> <span class="number">443</span><span class="string">:443</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./config/nginx/nginx.conf:/etc/nginx/nginx.conf</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./logs:/var/log/nginx</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./data/nginx:/usr/share/nginx/html</span></div><div class="line"><span class="attr">    links:</span></div><div class="line"><span class="attr">      - tomcat:</span><span class="string">t1</span></div><div class="line"><span class="attr">  tomcat:</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">tomcat</span></div><div class="line"><span class="attr">    restart:</span> <span class="string">always</span></div><div class="line"><span class="attr">    image:</span> <span class="attr">tomcat:8-jre8</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:8080:8080</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./data/tomcat/test.war:/usr/local/tomcat/webapps/test.war</span></div><div class="line"><span class="bullet">      -</span> <span class="string">./logs:/usr/local/tomcat/logs</span></div><div class="line"><span class="attr">    links:</span></div><div class="line"><span class="attr">      - mysql:</span><span class="string">m1</span></div><div class="line"><span class="attr">    environment:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">DATABASE_HOST=mysql</span></div><div class="line"><span class="bullet">      -</span> <span class="string">DATABASE_USER=root</span></div><div class="line"><span class="bullet">      -</span> <span class="string">DATABASE_PASSWORD=admintest</span></div><div class="line"><span class="bullet">      -</span> <span class="string">DATABASE_NAME=testdb</span></div><div class="line"><span class="bullet">      -</span> <span class="string">DATABASE_PORT=3306</span></div></pre></td></tr></table></figure></p>
+<p>　　可以看到，我们一共设置了三个service，分别是mysql, nginx, tomcat，其中，需要注意的地方是它们的volumes以及links，其他的地方应该很容易理解。<br>　　另外，这里给出目录结构：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">---┐</div><div class="line">   ├-config--┐</div><div class="line">   │         ├-mysql---mysqld.conf</div><div class="line">   │         │</div><div class="line">   │         ├-nginx---nginx.conf</div><div class="line">   │         │</div><div class="line">   │         └-tomcat--server.xml</div><div class="line">   ├-data----┐</div><div class="line">   │         ├-mysql---（MySQL自动生成，是数据库数据的相关文件）</div><div class="line">   │         │</div><div class="line">   │         ├-nginx---（前端文件）</div><div class="line">   │         │</div><div class="line">   │         └-tomcat--（后端war包）</div><div class="line">   ├-logs----略（这里是Docker启动时自动生成的）</div><div class="line">   │</div><div class="line">   └-docker-compose.yml</div></pre></td></tr></table></figure></p>
+<h2 id="3-1-MySQL环境配置"><a href="#3-1-MySQL环境配置" class="headerlink" title="3.1.MySQL环境配置"></a>3.1.MySQL环境配置</h2><p>　　首先，最简单的是<code>MySQL</code>，它没有设置links，因为是其他容器连接它。但是MySQL的volumes却是最为重要的，如果我们在这里不设置volumes的话，每次运行所产生的数据将无法保留。所以MySQL的volumes，就设置了两点：</p>
+<ul>
+<li>指定MySQL产生的data文件需要同步到宿主机的./data/mysql目录下</li>
+<li>指定MySQL的配置文件从宿主机的./config/mysql/mysqld.conf读取</li>
+</ul>
+<h2 id="3-2-Nginx环境配置"><a href="#3-2-Nginx环境配置" class="headerlink" title="3.2.Nginx环境配置"></a>3.2.Nginx环境配置</h2><p>　　其次是<code>Nginx</code>，它有volumes，也有links，这里的volumes参照MySQL的来理解。重点是links，Nginx的links建立了与Tomcat容器的连接，<code>Nginx</code>负责监听80端口，<code>Tomcat</code>负责监听本地的8080端口，<code>Nginx</code>接收到需要由<code>Tomcat</code>来处理的请求，就将请求转发到8080端口。我们必须先定义一个links，这里的值为Tomcat容器的名字，t1是这个容器的别名，可以理解为ip或者自定义的域名。那么，将Nginx的配置文件修改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">user www-data;</div><div class="line">worker_processes auto;</div><div class="line">pid /run/nginx.pid;</div><div class="line">　　</div><div class="line">events &#123;</div><div class="line">	worker_connections 768;</div><div class="line">	# multi_accept on;</div><div class="line">&#125;</div><div class="line">　　</div><div class="line">http &#123;</div><div class="line">	##</div><div class="line">	# Basic Settings</div><div class="line">	##</div><div class="line">	sendfile on;</div><div class="line">	tcp_nopush on;</div><div class="line">	tcp_nodelay on;</div><div class="line">	keepalive_timeout 65;</div><div class="line">	types_hash_max_size 2048;</div><div class="line">　　</div><div class="line">	include /etc/nginx/mime.types;</div><div class="line">	default_type application/octet-stream;</div><div class="line">　　</div><div class="line">	ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE</div><div class="line">	ssl_prefer_server_ciphers on;</div><div class="line">　　</div><div class="line">	access_log /var/log/nginx/access.log;</div><div class="line">	error_log /var/log/nginx/error.log;</div><div class="line">　　</div><div class="line">	gzip on;</div><div class="line">	gzip_disable &quot;msie6&quot;;</div><div class="line">　　</div><div class="line">	include /etc/nginx/conf.d/*.conf;</div><div class="line">	include /etc/nginx/sites-enabled/*;</div><div class="line">　　</div><div class="line">	upstream api_domain &#123;</div><div class="line">		server t1:8080;</div><div class="line">	&#125;</div><div class="line">　　</div><div class="line">	server &#123;</div><div class="line">	  root /usr/share/nginx/html;</div><div class="line"></div><div class="line">	  location ^~ /test/ &#123;</div><div class="line">  		proxy_pass http://api_domain/test/;</div><div class="line">  		proxy_set_header Host $host;</div><div class="line">  		proxy_set_header X-Real-IP $remote_addr;</div><div class="line">  		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</div><div class="line">	  &#125;</div><div class="line">　　</div><div class="line">	  location / &#123;</div><div class="line">      try_files $uri $uri/ @router;</div><div class="line">      index index.html index.htm;</div><div class="line">    &#125;</div><div class="line">　　</div><div class="line">    location @router &#123;</div><div class="line">      rewrite ^.*$ /index.html last;</div><div class="line">    &#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>　　其实主要是在<code>http</code>属性下添加了<code>upstream</code>和<code>server</code>属性，其中<code>upstream</code>里的<code>server t1:8080;</code>就是指的<code>Tomcat</code>容器的8080端口；<code>server</code>则是相应的转发规则，我在<a href="/2018/11/03/nginx-reverse-proxy-apache/">Nginx反向代理Apache，并解决Laravel在反向代理情况下的HTTPS加密问题</a>一文中有较为详细的描述，这里就不做详细的说明了。而使用例如<code>Vue.js</code>构建的前端文件，可以直接放在本机的<code>./data/nginx</code>中，映射到容器的<code>/usr/share/nginx/html</code>下。</p>
+<h2 id="3-3-Tomcat环境配置"><a href="#3-3-Tomcat环境配置" class="headerlink" title="3.3.Tomcat环境配置"></a>3.3.Tomcat环境配置</h2><p>　　最后是Tomcat，Spring项目打包构建出war包，然后将例如名为test的war包发布上去，只需要定义几个volumes的值便可以了。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">volumes:</div><div class="line">  - ./data/tomcat/test.war:/usr/local/tomcat/webapps/test.war</div><div class="line">  - ./logs:/usr/local/tomcat/logs</div></pre></td></tr></table></figure></p>
+<p>　　另外，我这里额外定义了多个环境变量，自然是有用处的。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">environment:</div><div class="line">  - DATABASE_HOST=mysql</div><div class="line">  - DATABASE_USER=root</div><div class="line">  - DATABASE_PASSWORD=admintest</div><div class="line">  - DATABASE_NAME=testdb</div><div class="line">  - DATABASE_PORT=3306</div></pre></td></tr></table></figure></p>
+<p>　　这里分别定义了数据库主机名、用户、密码、数据库名、端口，用处在于构建war包之前，我们需要将<code>Spring</code>项目里配置的<code>MySQL</code>相关变量更改为如下格式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">#############   Docker部署MySQL的配置   #############</div><div class="line">url=jdbc:mysql://$&#123;DATABASE_HOST&#125;:$&#123;DATABASE_PORT&#125;/$&#123;DATABASE_NAME&#125;?autoReconnect=true&amp;useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC&amp;zeroDateTimeBehavior=convertToNull</div><div class="line">#username=$&#123;DATABASE_USER&#125;</div><div class="line">#password=$&#123;DATABASE_PASSWORD&#125;</div><div class="line">driverClassName=com.mysql.jdbc.Driver</div></pre></td></tr></table></figure></p>
+<p>　　这样配置完成后，在启动Tomcat容器时，就不会报无法连接数据库的错误了。这时，Spring项目就可以单纯的作为后端，提供API服务了，也不存在跨域问题。</p>
+<h1 id="4-结语"><a href="#4-结语" class="headerlink" title="4.结语"></a>4.结语</h1><p>　　<code>Docker</code>真的是个好东西，宿主机可以保持如此干净，防止了不可预知的主机软件之前的冲突，也方便在其他设备上进行部署，超快的启动速度，较少的资源消耗，绝对是Linux上部署项目的不二选择，个人真的是超级喜欢。这只是刚刚接触，需要学习的<code>Docker</code>知识还有很多很多。</p>
+<blockquote><p>参考贴来源：<br><a href="http://www.spring4all.com/article/1120" target="_blank" rel="external">docker-compose一键部署Nginx+Tomcat+Mysql+solo2.7.0 作者：我敬你是条汉子</a><br><a href="https://segmentfault.com/a/1190000016056409" target="_blank" rel="external">服务器从零开始（2D）-Docker+Tomcat+Nginx+MySQL 作者：KerryWu</a><br><a href="https://tomoyadeng.github.io/blog/2017/07/23/spring-boot-mybatis-docker/index.html" target="_blank" rel="external">spring-boot-mybatis-docker整合使用 作者：Tomoya Deng</a></p>
+<footer><strong>转载说明</strong></footer></blockquote>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/03/30/spring-shutdown-tomcat-oom-error/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+  </div>
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>
