@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Dockerfile构建支持定时备份的MySQL镜像 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Docker," />
+  
+
+  <meta name="description" content="0.前言　　承接上一篇文章，手上的项目选择使用Docker进行部署，其方便快捷的特性深深吸引了我。但是，最近实验室某项目遭受黑客攻击，数据丢失，给我们敲响了警钟，数据备份的重要性不言而喻。于是，我想到如何让Docker镜像自动定期备份，成为了我的研究重点。参考了鲸临于空的Dockerfile实现MySQL定时备份一文，利用Dockerfile基于官方的MySQL镜像构建自定义的镜像，从而实现更加简">
+<meta name="keywords" content="Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dockerfile构建支持定时备份的MySQL镜像">
+<meta property="og:url" content="http://jiacyer.com/2019/05/25/dockerfile-build-mysql-with-crontab/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="0.前言　　承接上一篇文章，手上的项目选择使用Docker进行部署，其方便快捷的特性深深吸引了我。但是，最近实验室某项目遭受黑客攻击，数据丢失，给我们敲响了警钟，数据备份的重要性不言而喻。于是，我想到如何让Docker镜像自动定期备份，成为了我的研究重点。参考了鲸临于空的Dockerfile实现MySQL定时备份一文，利用Dockerfile基于官方的MySQL镜像构建自定义的镜像，从而实现更加简">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-05-25T13:25:15.272Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dockerfile构建支持定时备份的MySQL镜像">
+<meta name="twitter:description" content="0.前言　　承接上一篇文章，手上的项目选择使用Docker进行部署，其方便快捷的特性深深吸引了我。但是，最近实验室某项目遭受黑客攻击，数据丢失，给我们敲响了警钟，数据备份的重要性不言而喻。于是，我想到如何让Docker镜像自动定期备份，成为了我的研究重点。参考了鲸临于空的Dockerfile实现MySQL定时备份一文，利用Dockerfile基于官方的MySQL镜像构建自定义的镜像，从而实现更加简">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#0-1-缺点的发现"><span class="toc-text">0.1 缺点的发现</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0-2-Dockerfile中的关键点"><span class="toc-text">0.2 Dockerfile中的关键点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-方式一：基于MySQL官方Dockerfile改造"><span class="toc-text">1.方式一：基于MySQL官方Dockerfile改造</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-方式二：基于MySQL官方镜像改造"><span class="toc-text">2.方式二：基于MySQL官方镜像改造</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-结语"><span class="toc-text">3.结语</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-dockerfile-build-mysql-with-crontab" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Dockerfile构建支持定时备份的MySQL镜像</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.05.25</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h1><p>　　承接上一篇文章，手上的项目选择使用<code>Docker</code>进行部署，其方便快捷的特性深深吸引了我。但是，最近实验室某项目遭受黑客攻击，数据丢失，给我们敲响了警钟，数据备份的重要性不言而喻。于是，我想到如何让<code>Docker</code>镜像自动定期备份，成为了我的研究重点。参考了鲸临于空的<a href="https://blog.csdn.net/alinyua/article/details/82532988" target="_blank" rel="external">Dockerfile实现MySQL定时备份</a>一文，利用<code>Dockerfile</code>基于官方的MySQL镜像构建自定义的镜像，从而实现更加简单的<code>crontab</code>定时任务。</p>
+<h2 id="0-1-缺点的发现"><a href="#0-1-缺点的发现" class="headerlink" title="0.1 缺点的发现"></a>0.1 缺点的发现</h2><p>　　鲸临于空所写的教程和建的镜像，大体上已完成了定期数据备份。但是，最大的问题在于，鲸临于空所构建的镜像仅对新数据库有效，对已存在的数据库，并不能定期备份。其原因在于<a href="https://hub.docker.com/_/mysql" target="_blank" rel="external">MySQL官方镜像</a>构建时，<code>Entrypoint</code>所使用的shell脚本中：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> usage: process_init_file FILENAME MYSQLCOMMAND...</div><div class="line"><span class="meta">#</span>    ie: process_init_file foo.sh mysql -uroot</div><div class="line"><span class="meta">#</span> (process a single initializer file, based on its extension. we define this</div><div class="line"><span class="meta">#</span> function here, so that initializer scripts (*.sh) can use the same logic,</div><div class="line"><span class="meta">#</span> potentially recursively, or override the logic used in subsequent calls)</div><div class="line">process_init_file() &#123;</div><div class="line">	local f="$1"; shift</div><div class="line">	local mysql=( "$@" )</div><div class="line">  </div><div class="line">	case "$f" in</div><div class="line">		*.sh)     echo "$0: running $f"; . "$f" ;;</div><div class="line">		*.sql)    echo "$0: running $f"; "$&#123;mysql[@]&#125;" &lt; "$f"; echo ;;</div><div class="line">		*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "$&#123;mysql[@]&#125;"; echo ;;</div><div class="line">		*)        echo "$0: ignoring $f" ;;</div><div class="line">	esac</div><div class="line">	echo</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>　　该方法仅在<code>if [ ! -d &quot;$DATADIR/mysql&quot; ];</code>判断MySQL文件夹不存在时才执行，所有当数据库已存在时，便不会再次构建数据库，更不会执行<code>/docker-entrypoint-initdb.d</code>目录下的shell脚本、sql文件等。参考上述资料之后，我们可以明白，要想构建的镜像支持已存在的数据库，方便使用者更加自由的从官方镜像切换过来，就必须改变<code>Entrypoint</code>所使用的shell脚本。于是，我尝试了两种不同的方法构建目标镜像。经过验证，ENTRYPOINT每个Dockerfile文件可以有多条，但一个镜像只有最后一条ENTRYPOINT有效。</p>
+<h1 id="0-2-Dockerfile中的关键点"><a href="#0-2-Dockerfile中的关键点" class="headerlink" title="0.2 Dockerfile中的关键点"></a>0.2 Dockerfile中的关键点</h1><p>　　<code>Dockerfile</code>有很多需要我们去学习的东西，这里推荐yeasy的<a href="https://yeasy.gitbooks.io/docker_practice/image/build.html" target="_blank" rel="external">Docker文档</a>。这里我只列出本文的关键点：<code>ENTRYPOINT 入口点</code>。<code>ENTRYPOINT</code>的格式和<code>RUN</code>指令格式一样，分为<code>exec</code>格式和<code>shell</code>格式。<code>ENTRYPOINT</code>的目的和<code>CMD</code>一样，都是在指定容器启动程序及参数。而我们这里需要用到的场景便是<code>应用运行前的准备工作</code>。</p>
+<h1 id="1-方式一：基于MySQL官方Dockerfile改造"><a href="#1-方式一：基于MySQL官方Dockerfile改造" class="headerlink" title="1.方式一：基于MySQL官方Dockerfile改造"></a>1.方式一：基于MySQL官方Dockerfile改造</h1><p>　　参考MySQL官方开放在<a href="https://github.com/docker-library/mysql" target="_blank" rel="external">Gihub</a>上的<code>Dockerfile</code>和<code>docker-entrypoint.sh</code>文件，进行如何更改：<br>　　- Dockerfile<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div></pre></td><td class="code"><pre><div class="line">FROM debian:stretch-slim</div><div class="line">  </div><div class="line"># add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added</div><div class="line">RUN groupadd -r mysql &amp;&amp; useradd -r -g mysql mysql</div><div class="line">  </div><div class="line">RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends gnupg dirmngr &amp;&amp; rm -rf /var/lib/apt/lists/*</div><div class="line">  </div><div class="line"># add gosu for easy step-down from root</div><div class="line">ENV GOSU_VERSION 1.7</div><div class="line">RUN set -x \</div><div class="line">	&amp;&amp; apt-get update &amp;&amp; apt-get install -y --no-install-recommends ca-certificates wget &amp;&amp; rm -rf /var/lib/apt/lists/* \</div><div class="line">	&amp;&amp; wget -O /usr/local/bin/gosu &quot;https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)&quot; \</div><div class="line">	&amp;&amp; wget -O /usr/local/bin/gosu.asc &quot;https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc&quot; \</div><div class="line">	&amp;&amp; export GNUPGHOME=&quot;$(mktemp -d)&quot; \</div><div class="line">	&amp;&amp; gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \</div><div class="line">	&amp;&amp; gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \</div><div class="line">	&amp;&amp; gpgconf --kill all \</div><div class="line">	&amp;&amp; rm -rf &quot;$GNUPGHOME&quot; /usr/local/bin/gosu.asc \</div><div class="line">	&amp;&amp; chmod +x /usr/local/bin/gosu \</div><div class="line">	&amp;&amp; gosu nobody true \</div><div class="line">	&amp;&amp; apt-get purge -y --auto-remove ca-certificates wget</div><div class="line">  </div><div class="line">RUN mkdir /docker-entrypoint-initdb.d</div><div class="line">  </div><div class="line">RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends \</div><div class="line"># for MYSQL_RANDOM_ROOT_PASSWORD</div><div class="line">		pwgen \</div><div class="line"># FATAL ERROR: please install the following Perl modules before executing /usr/local/mysql/scripts/mysql_install_db:</div><div class="line"># File::Basename</div><div class="line"># File::Copy</div><div class="line"># Sys::Hostname</div><div class="line"># Data::Dumper</div><div class="line">		perl \</div><div class="line"># mysqld: error while loading shared libraries: libaio.so.1: cannot open shared object file: No such file or directory</div><div class="line">		libaio1 \</div><div class="line"># mysql: error while loading shared libraries: libncurses.so.5: cannot open shared object file: No such file or directory</div><div class="line">		libncurses5 \</div><div class="line">	&amp;&amp; rm -rf /var/lib/apt/lists/*</div><div class="line">  </div><div class="line">ENV MYSQL_MAJOR 5.5</div><div class="line">ENV MYSQL_VERSION 5.5.62</div><div class="line">  </div><div class="line">RUN apt-get update &amp;&amp; apt-get install -y ca-certificates wget --no-install-recommends &amp;&amp; rm -rf /var/lib/apt/lists/* \</div><div class="line">	&amp;&amp; wget &quot;https://cdn.mysql.com/Downloads/MySQL-$MYSQL_MAJOR/mysql-$MYSQL_VERSION-linux-glibc2.12-x86_64.tar.gz&quot; -O mysql.tar.gz \</div><div class="line">	&amp;&amp; wget &quot;https://cdn.mysql.com/Downloads/MySQL-$MYSQL_MAJOR/mysql-$MYSQL_VERSION-linux-glibc2.12-x86_64.tar.gz.asc&quot; -O mysql.tar.gz.asc \</div><div class="line">	&amp;&amp; apt-get purge -y --auto-remove ca-certificates wget \</div><div class="line">	&amp;&amp; export GNUPGHOME=&quot;$(mktemp -d)&quot; \</div><div class="line"># gpg: key 5072E1F5: public key &quot;MySQL Release Engineering &lt;mysql-build@oss.oracle.com&gt;&quot; imported</div><div class="line">	&amp;&amp; gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5 \</div><div class="line">	&amp;&amp; gpg --batch --verify mysql.tar.gz.asc mysql.tar.gz \</div><div class="line">	&amp;&amp; gpgconf --kill all \</div><div class="line">	&amp;&amp; rm -rf &quot;$GNUPGHOME&quot; mysql.tar.gz.asc \</div><div class="line">	&amp;&amp; mkdir /usr/local/mysql \</div><div class="line">	&amp;&amp; tar -xzf mysql.tar.gz -C /usr/local/mysql --strip-components=1 \</div><div class="line">	&amp;&amp; rm mysql.tar.gz \</div><div class="line">	&amp;&amp; rm -rf /usr/local/mysql/mysql-test /usr/local/mysql/sql-bench \</div><div class="line">	&amp;&amp; rm -rf /usr/local/mysql/bin/*-debug /usr/local/mysql/bin/*_embedded \</div><div class="line">	&amp;&amp; find /usr/local/mysql -type f -name &quot;*.a&quot; -delete \</div><div class="line">	&amp;&amp; apt-get update &amp;&amp; apt-get install -y binutils &amp;&amp; rm -rf /var/lib/apt/lists/* \</div><div class="line">	&amp;&amp; &#123; find /usr/local/mysql -type f -executable -exec strip --strip-all &apos;&#123;&#125;&apos; + || true; &#125; \</div><div class="line">	&amp;&amp; apt-get purge -y --auto-remove binutils</div><div class="line">ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts</div><div class="line">  </div><div class="line"># replicate some of the way the APT package configuration works</div><div class="line"># this is only for 5.5 since it doesn&apos;t have an APT repo, and will go away when 5.5 does</div><div class="line">RUN mkdir -p /etc/mysql/conf.d \</div><div class="line">	&amp;&amp; &#123; \</div><div class="line">		echo &apos;[mysqld]&apos;; \</div><div class="line">		echo &apos;skip-host-cache&apos;; \</div><div class="line">		echo &apos;skip-name-resolve&apos;; \</div><div class="line">		echo &apos;datadir = /var/lib/mysql&apos;; \</div><div class="line">		echo &apos;!includedir /etc/mysql/conf.d/&apos;; \</div><div class="line">	&#125; &gt; /etc/mysql/my.cnf</div><div class="line"></div><div class="line">RUN mkdir -p /var/lib/mysql /var/run/mysqld \</div><div class="line">	&amp;&amp; chown -R mysql:mysql /var/lib/mysql /var/run/mysqld \</div><div class="line"># ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime</div><div class="line">	&amp;&amp; chmod 777 /var/run/mysqld</div><div class="line">  </div><div class="line">###################### Crontab Initialize ###############################</div><div class="line">  </div><div class="line"># 将任务脚本复制进容器</div><div class="line">COPY j-entrypoint/cron-shell/ /j-entrypoint/cron-shell/</div><div class="line">COPY j-entrypoint/init-shell/ /j-entrypoint/init-shell/</div><div class="line"></div><div class="line"># 修正时区</div><div class="line">RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \</div><div class="line">      &amp;&amp; echo &apos;Asia/Shanghai&apos; &gt;/etc/timezone \</div><div class="line"># 更新源</div><div class="line">      &amp;&amp; apt-get update \</div><div class="line"># 安装cron</div><div class="line">      &amp;&amp; apt-get install -y  --no-install-recommends cron \</div><div class="line"># 安装dos2unix工具</div><div class="line">      &amp;&amp; apt-get install -y  dos2unix \</div><div class="line"># 安装sudo</div><div class="line">      &amp;&amp; apt-get install sudo \</div><div class="line"># 授予mysql组用户sudo免密码</div><div class="line">      &amp;&amp; echo &apos;%mysql ALL=(ALL) NOPASSWD: ALL&apos; &gt;&gt; /etc/sudoers \</div><div class="line"># 减小镜像的体积</div><div class="line">      &amp;&amp; rm -rf /var/lib/apt/lists/*  \</div><div class="line">      &amp;&amp; apt-get clean \</div><div class="line"># 赋予脚本可执行权限</div><div class="line">      &amp;&amp; chmod a+x -R /j-entrypoint</div><div class="line">  </div><div class="line">VOLUME /var/lib/mysql</div><div class="line">  </div><div class="line">COPY docker-entrypoint.sh /usr/local/bin/</div><div class="line">RUN dos2unix /usr/local/bin/docker-entrypoint.sh \</div><div class="line">		&amp;&amp; chmod 777 /usr/local/bin/docker-entrypoint.sh  \</div><div class="line"> 		&amp;&amp; ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat</div><div class="line">ENTRYPOINT [&quot;docker-entrypoint.sh&quot;]</div><div class="line"></div><div class="line">EXPOSE 3306</div><div class="line">CMD [&quot;mysqld&quot;]</div></pre></td></tr></table></figure></p>
+<p>　　- docker-entrypoint.sh<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>!/bin/bash</div><div class="line"><span class="meta">#</span>####################### Crontab Initialize #######################</div><div class="line">for f in /j-entrypoint/init-shell/*; do</div><div class="line">	case "$f" in</div><div class="line">		*.sh)	echo "running $f"; . "$f";;</div><div class="line">		*)	echo "ignoring $f";;</div><div class="line">	esac</div><div class="line">	echo</div><div class="line">done</div><div class="line"><span class="meta">#</span>####################### MySQL Official Initialize #######################</div><div class="line"><span class="meta">#</span>############# 此处省略MySQ官方的docker-entrypoint.sh剩余内容 ##############</div></pre></td></tr></table></figure></p>
+<p>　　可以看到我仅对官方<code>Dockerfile</code>文件末尾部分和<code>docker-entrypoint.sh</code>的开头部分做了修改，学习鲸临于空将<code>cron</code>和<code>dos2unix</code>安装到镜像中，并赋予相关权限。值得注意的是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">RUN dos2unix /usr/local/bin/docker-entrypoint.sh \</div><div class="line">		&amp;&amp; chmod 777 /usr/local/bin/docker-entrypoint.sh  \</div><div class="line"> 		&amp;&amp; ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat</div></pre></td></tr></table></figure></p>
+<p>　　由于我重写了<code>docker-entrypoint.sh</code>，所以这里重新格式化并附于执行权限，保证镜像的正常构建。由于每次启动容器时，都会执行<code>docker-entrypoint.sh</code>，于是在其开头部分加入执行<code>/j-entrypoint/init-shell/*</code>目录下所有shell文件，便可实现定时任务的自动设定。<br>　　这里给出<code>/j-entrypoint</code>目录下所有文件内容：<br>　　- <code>/j-entrypoint/init-shell/</code>目录下的<code>start.sh</code>。该文件是对相关文件进行赋权，并加载<code>crontab</code>文件内的定时任务。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>mysql用户执行,故需要加sudo避免权限不够,同时,新建文件一般放在/var/lib/mysql目录下,否则同样权限不够</div><div class="line">  </div><div class="line"><span class="meta">#</span>修改文件夹权限,否则无法在该目录下创建文件</div><div class="line">sudo chmod 777 /etc/default</div><div class="line"><span class="meta">#</span>将docker的环境变量输出到locale,使得cron定期运行的脚本可以使用这些环境变量,否则执行备份脚本时可能提示密码为空</div><div class="line">env &gt;&gt; /etc/default/locale</div><div class="line">  </div><div class="line"><span class="meta">#</span>启动cron并将其启动结果写入文件</div><div class="line"><span class="meta">#</span> 这里需要使用sudo,否则会提示cron: can't open or create /var/run/crond.pid: Permission denied</div><div class="line"><span class="meta">#</span> 这个问题无法通过修改/var/run/crond或/run文件夹权限解决</div><div class="line"><span class="meta">#</span> 需要注意的是,使用sudo后cron是在root用户下运行的,root用户下使用`service cron status`会出现` [ ok ] cron is running. `</div><div class="line"><span class="meta">#</span> 而mysql执行`service cron status`则会出现` [FAIL] cron is not running ... failed! `</div><div class="line"><span class="meta">#</span> 虽然如此,mysql用户身份制定的定时任务还是会执行的</div><div class="line">sudo /usr/sbin/service cron start &amp;&gt;&gt; /var/lib/mysql/cron-start.log</div><div class="line">  </div><div class="line"><span class="meta">#</span>授予权限</div><div class="line">sudo chmod 777 -R /cron-shell</div><div class="line">  </div><div class="line"><span class="meta">#</span>修正文件格式,这里dos2unix的执行也需要sudo,否则会报错`Failed to change the owner and group of temporary output file /cron-shell/d2utmpKfjPMF: Operation not permitted`</div><div class="line">for f in /j-entrypoint/cron-shell/*; do</div><div class="line">	sudo dos2unix "$f"</div><div class="line">done</div><div class="line">  </div><div class="line"><span class="meta">#</span> 确保结尾换行,避免出现错误:`new crontab file is missing newline before EOF, can't install.`</div><div class="line">echo "" &gt;&gt; /j-entrypoint/cron-shell/crontab</div><div class="line">  </div><div class="line"><span class="meta">#</span>以/cron-shell/crontab.bak作为crontab的任务列表文件并载入</div><div class="line"><span class="meta">#</span> 因为执行的定时任务一般是数据库相关的,mysql用户就可以了,如果使用root用户可能会报错:`Got error: 1045: Access denied for user 'root'@'localhost' (using password: YES) when trying to connect`</div><div class="line"><span class="meta">#</span> 所以这里使用mysql用户载入定时任务表,任务脚本也将以mysql用户执行,需注意权限问题</div><div class="line">crontab /j-entrypoint/cron-shell/crontab</div></pre></td></tr></table></figure></p>
+<p>　　- <code>/j-entrypoint/cron-shell/</code>目录下的<code>backup.sh</code>。这个文件是可以自定义的，不限于备份数据库。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>!/bin/bash</div><div class="line"><span class="meta">#</span>作为crontab运行的脚本,需特别注意环境变量问题,指令写成绝对路径</div><div class="line">  </div><div class="line"><span class="meta">#</span>读取环境变量</div><div class="line">. /etc/profile</div><div class="line"><span class="meta">#</span>如果目录不存在则新建</div><div class="line">DIR=/var/lib/mysql/backup</div><div class="line">if [ ! -e $DIR ]</div><div class="line">then</div><div class="line">	/bin/mkdir -p $DIR</div><div class="line">fi</div><div class="line"><span class="meta">#</span>将所有数据库导出并按日期命名保存成sql.gz</div><div class="line">/usr/local/mysql/bin/mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"   | gzip &gt; "$DIR/data_`date +%Y%m%d`.sql.gz"</div><div class="line"><span class="meta">#</span>查找更改时间在7日以前的sql备份文件并删除</div><div class="line">/usr/bin/find $DIR -mtime +7  -name "data_[1-9]*.sql.gz" -exec rm -rf &#123;&#125; \;</div></pre></td></tr></table></figure></p>
+<p>　　- <code>/j-entrypoint/cron-shell/</code>目录下的<code>crontab</code>。此文件必须名为<code>crontab</code>，否则无法正常载入定时任务。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">* 4 * * * /j-entrypoint/cron-shell/backup.sh</div></pre></td></tr></table></figure></p>
+<h1 id="2-方式二：基于MySQL官方镜像改造"><a href="#2-方式二：基于MySQL官方镜像改造" class="headerlink" title="2.方式二：基于MySQL官方镜像改造"></a>2.方式二：基于MySQL官方镜像改造</h1><p>　　不可否认，以上操作实现了我们需要的功能，但太过复杂，于是我想到通过重新拷贝<code>docker-entrypoint.sh</code>到镜像中，并重新链接到<code>/entrypoint.sh</code>的方式，简化了Dockfile文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">FROM mysql:5.5.62  </div><div class="line">  </div><div class="line">MAINTAINER Jiacy  </div><div class="line">  </div><div class="line">#将任务脚本复制进容器</div><div class="line">COPY j-entrypoint/cron-shell/ /j-entrypoint/cron-shell/</div><div class="line">COPY j-entrypoint/init-shell/ /j-entrypoint/init-shell/</div><div class="line">#将修改后的docker-entrypoint.sh脚本复制到/usr/local/bin/目录</div><div class="line">COPY docker-entrypoint.sh /usr/local/bin/</div><div class="line">  </div><div class="line">#修正时区</div><div class="line">RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \</div><div class="line">      &amp;&amp; echo &apos;Asia/Shanghai&apos; &gt;/etc/timezone \</div><div class="line">#更新源</div><div class="line">      &amp;&amp; apt-get update \</div><div class="line">#安装cron</div><div class="line">      &amp;&amp; apt-get install -y  --no-install-recommends cron \</div><div class="line">#安装dos2unix工具</div><div class="line">      &amp;&amp; apt-get install -y  dos2unix \</div><div class="line">#安装sudo</div><div class="line">      &amp;&amp; apt-get install sudo \</div><div class="line">#授予mysql组用户sudo免密码</div><div class="line">      &amp;&amp; echo &apos;%mysql ALL=(ALL) NOPASSWD: ALL&apos; &gt;&gt; /etc/sudoers \</div><div class="line">#减小镜像的体积</div><div class="line">      &amp;&amp; rm -rf /var/lib/apt/lists/*  \</div><div class="line">      &amp;&amp; apt-get clean \</div><div class="line">#赋予脚本可执行权限</div><div class="line">      &amp;&amp; chmod a+x -R /j-entrypoint</div><div class="line">#更新docker-entrypoint.sh脚本</div><div class="line">RUN dos2unix /usr/local/bin/docker-entrypoint.sh \</div><div class="line">      &amp;&amp; chmod 777 /usr/local/bin/docker-entrypoint.sh  \</div><div class="line">      &amp;&amp; rm /entrypoint.sh \</div><div class="line">      &amp;&amp; ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat</div></pre></td></tr></table></figure></p>
+<p>　　通过这样简短的方式，将修改后的<code>docker-entrypoint.sh</code>拷贝进镜像，并移除原有的<code>entrypoint.sh</code>文件，最后重新进行软链接，便可实现跟方法一相同的功能。</p>
+<h1 id="3-结语"><a href="#3-结语" class="headerlink" title="3.结语"></a>3.结语</h1><p>　　经历千辛万苦，构建出了符合自己需求的镜像，同样我也上传到了<a href="https://hub.docker.com/r/jiacy061/mysql-with-cron" target="_blank" rel="external">Dockerhub</a>中，使用时仅需要把自定义的shell文件和一个必须名为<code>crontab</code>的任务表文件挂载到<code>/j-entrypoint/cron-shell/</code>目录下。详情可参考我提供的<code>Dockerhub</code>页面。</p>
+<blockquote><p>参考贴来源：<br><a href="https://blog.csdn.net/alinyua/article/details/82532988" target="_blank" rel="external">Dockerfile实现MySQL定时备份 作者：鲸临于空</a></p>
+<footer><strong>转载说明</strong></footer></blockquote>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/03/30/docker-tomcat-nginx-mysql-springmvc/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+  </div>
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>

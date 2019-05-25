@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://jiacyer.com/images/1710/171028_img1.png">
 <meta property="og:image" content="http://jiacyer.com/images/1710/171028_img2.png">
 <meta property="og:image" content="http://jiacyer.com/images/1710/171028_img3.png">
-<meta property="og:updated_time" content="2019-03-30T03:29:17.713Z">
+<meta property="og:updated_time" content="2019-05-25T09:06:17.979Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Apache服务器无法启动的故障">
 <meta name="twitter:description" content="0.前言　　今天突然发现我的美帝服务器太久没重启，且上次设置的自动定时重启没有成功，于是手动重启了一下。然而让我没想到的是，晚上访问我的jiacyer.com域名时，无法访问服务器，但ping是正常的，说明并不是服务器宕机，而是apache死了。于是，我踏上了找bug的道路。 1.apache死亡的原因 我使用“./etc/init.d/apache2 start”或者“./etc/init.d/">
@@ -179,7 +179,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-apache死亡的原因"><span class="toc-text">1.apache死亡的原因</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-结语"><span class="toc-text">3.结语</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Tips"><span class="toc-text">Tips</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-前言"><span class="toc-text">0.前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-apache死亡的原因"><span class="toc-text">1.apache死亡的原因</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-结语"><span class="toc-text">2.结语</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Tips"><span class="toc-text">Tips</span></a></li></ol></li></ol>
   </div>
 
 
@@ -237,7 +237,7 @@
 </li>
 </ul>
 <p>　　回想起，这不知道是我什么时候动过的一行代码，不禁恍然大悟。把root改为普通用户之后，重启apache服务，问题解决！又可以重新访问我的网站了，又可以为广大网友提供奇奇怪怪的下载了！喜大普奔~</p>
-<h1 id="3-结语"><a href="#3-结语" class="headerlink" title="3.结语"></a>3.结语</h1><p>　　英语真的很重要，不然google翻译多尴尬嘛！以及首次尝试在文章中加入图片！</p>
+<h1 id="2-结语"><a href="#2-结语" class="headerlink" title="2.结语"></a>2.结语</h1><p>　　英语真的很重要，不然google翻译多尴尬嘛！以及首次尝试在文章中加入图片！</p>
 <h2 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h2><ul>
 <li>图片看不清的话，可以在图片上方点击右键，在新的标签页中打开查看。</li>
 </ul>
