@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kafka、Nsq、Hippo等消息中间件的梳理总结 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="MQ,Kafka,NSQ," />
+  
+
+  <meta name="description" content="1.消息中间件&amp;emsp;&amp;emsp;这周把 Kafka、Nsq、Hippo简单地学习了一遍，这三者都是常用的消息中间件。并且通过学习，发现消息中间件都有共通之处，所以非常值得大家多看多比较。这里先介绍一下消息中间件的优势：  屏蔽异构平台的细节：发送方、接收方系统之间不需要了解双方，只需认识消息。 异步：消息堆积能力；发送方接收方不需同时在线，发送方接收方不需同时扩容（削峰）。 解耦：防止引入过">
+<meta name="keywords" content="MQ,Kafka,NSQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka、Nsq、Hippo等消息中间件的梳理总结">
+<meta property="og:url" content="http://jiacyer.com/2020/07/10/mq-kafka-nsq-hippo-basic/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="1.消息中间件&amp;emsp;&amp;emsp;这周把 Kafka、Nsq、Hippo简单地学习了一遍，这三者都是常用的消息中间件。并且通过学习，发现消息中间件都有共通之处，所以非常值得大家多看多比较。这里先介绍一下消息中间件的优势：  屏蔽异构平台的细节：发送方、接收方系统之间不需要了解双方，只需认识消息。 异步：消息堆积能力；发送方接收方不需同时在线，发送方接收方不需同时扩容（削峰）。 解耦：防止引入过">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/zooKeeper集群角色.jpg">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka系统架构.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka分区示意图.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka消费者群组.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/Kafka-API.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/Kafka在zooKeeper中存储结构图.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka-docker1.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka-docker2.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka-docker3.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/kafka-docker4.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/nsq架构图.jpg">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/nsq数据流模型结构.gif">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/nsq-send.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week5/nsq-receive.png">
+<meta property="og:image" content="http://jiacyer.com/image/sx/week5/hippo系统逻辑结构图.jpg">
+<meta property="og:image" content="http://jiacyer.com/image/sx/week5/hippo系统交互图.jpg">
+<meta property="og:updated_time" content="2020-07-11T04:15:25.298Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kafka、Nsq、Hippo等消息中间件的梳理总结">
+<meta name="twitter:description" content="1.消息中间件&amp;emsp;&amp;emsp;这周把 Kafka、Nsq、Hippo简单地学习了一遍，这三者都是常用的消息中间件。并且通过学习，发现消息中间件都有共通之处，所以非常值得大家多看多比较。这里先介绍一下消息中间件的优势：  屏蔽异构平台的细节：发送方、接收方系统之间不需要了解双方，只需认识消息。 异步：消息堆积能力；发送方接收方不需同时在线，发送方接收方不需同时扩容（削峰）。 解耦：防止引入过">
+<meta name="twitter:image" content="http://jiacyer.com/images/sx/week5/zooKeeper集群角色.jpg">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-消息中间件"><span class="toc-text">1.消息中间件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-数据可靠性"><span class="toc-text">1.数据可靠性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Kafka"><span class="toc-text">2.Kafka</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-什么是Zookeeper"><span class="toc-text">2.1.什么是Zookeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-1-Zookeeper的重要概念"><span class="toc-text">2.1.1.Zookeeper的重要概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-2-Zookeeper的特点"><span class="toc-text">2.1.2.Zookeeper的特点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-3-ZooKeeper集群角色"><span class="toc-text">2.1.3.ZooKeeper集群角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-4-ZooKeeper应用举例参考文章"><span class="toc-text">2.1.4.ZooKeeper应用举例参考文章</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Kafka介绍"><span class="toc-text">2.2.Kafka介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-Kafka-的基本术语"><span class="toc-text">2.2.1.Kafka 的基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-Kafka的特性"><span class="toc-text">2.2.2.Kafka的特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-Kafka的使用场景"><span class="toc-text">2.2.3.Kafka的使用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-Kafka为何如此之快"><span class="toc-text">2.2.4.Kafka为何如此之快</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-核心API"><span class="toc-text">2.2.5.核心API</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Kafka与ZooKeeper的关系"><span class="toc-text">2.3.Kafka与ZooKeeper的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-Docker搭建Kafka集群"><span class="toc-text">2.4.Docker搭建Kafka集群</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-1-安装Docker-Compose"><span class="toc-text">2.4.1.安装Docker Compose</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-2-创建Docker-Network"><span class="toc-text">2.4.2.创建Docker Network</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-3-编写Docker-Compose文件"><span class="toc-text">2.4.3.编写Docker-Compose文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-4-启动Kafka集群"><span class="toc-text">2.4.4.启动Kafka集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-5-验证"><span class="toc-text">2.4.5.验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-Kafka与其他MQ的区别"><span class="toc-text">2.5.Kafka与其他MQ的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-参考"><span class="toc-text">2.6.参考</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-NSQ"><span class="toc-text">3.NSQ</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-NSQ组件"><span class="toc-text">3.1.NSQ组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-NSQ的特点"><span class="toc-text">3.2.NSQ的特点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-NSQ架构"><span class="toc-text">3.3.NSQ架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Channel消息传递的通道"><span class="toc-text">3.1.Channel消息传递的通道</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Consumer消息的消费者"><span class="toc-text">3.2.Consumer消息的消费者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-NSQ数据流模型结构"><span class="toc-text">3.4.NSQ数据流模型结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-本地搭建NSQ服务"><span class="toc-text">3.5.本地搭建NSQ服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-6-参考"><span class="toc-text">3.6.参考</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Hippo"><span class="toc-text">4.Hippo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-Hippo系统架构"><span class="toc-text">4.1.Hippo系统架构</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-结语"><span class="toc-text">5.结语</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-mq-kafka-nsq-hippo-basic" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Kafka、Nsq、Hippo等消息中间件的梳理总结</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.07.10</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/MQ/">MQ</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="1-消息中间件"><a href="#1-消息中间件" class="headerlink" title="1.消息中间件"></a>1.消息中间件</h1><p>&emsp;&emsp;这周把 <code>Kafka</code>、<code>Nsq</code>、<code>Hippo</code>简单地学习了一遍，这三者都是常用的消息中间件。并且通过学习，发现消息中间件都有共通之处，所以非常值得大家多看多比较。这里先介绍一下消息中间件的优势：</p>
+<ul>
+<li><strong>屏蔽异构平台的细节</strong>：发送方、接收方系统之间不需要了解双方，只需认识消息。</li>
+<li><strong>异步</strong>：消息堆积能力；发送方接收方不需同时在线，发送方接收方不需同时扩容（削峰）。</li>
+<li><strong>解耦</strong>：防止引入过多的API给系统的稳定性带来风险；调用方使用不当会给被调用方系统造成压力，被调用方处理不当会降低调用方系统的响应能力。</li>
+<li><strong>复用</strong>：一次发送多次消费。</li>
+</ul>
+<p>&emsp;&emsp;另外，推荐阅读一下<a href="https://data.qq.com/article?id=2670" target="_blank" rel="external">分布式高可靠消息中间件Hippo</a>文章中，提到的“传统消息系统数据丢失风险点”，学习一下要实现高可靠性的消息中间件需要注意的几个关键问题。</p>
+<h1 id="1-数据可靠性"><a href="#1-数据可靠性" class="headerlink" title="1.数据可靠性"></a>1.数据可靠性</h1><ul>
+<li><p><strong>消息存储可靠性</strong>：WAL(<a href="https://cloud.tencent.com/developer/article/1163460" target="_blank" rel="external">预写式日志</a>)+持久化；数据存储多副本；存储节点自动failover；</p>
+</li>
+<li><p><strong>消息传输可靠性</strong>：ACK机制；数据CRC(<a href="https://blog.csdn.net/liyuanbhu/article/details/7882789" target="_blank" rel="external">循环冗余校验</a>)校验；</p>
+</li>
+<li><p><strong>消息投递可靠性</strong>：producer-&gt;broker 数据存储后才返回成功确认；broker-&gt;consumer 数据处理完成后需进行确认</p>
+</li>
+<li><p><strong>服务（Qos）级别</strong>：不能丢消息；At-least-once 可能会有重复；极端情况下通过客户端进行数据去重；</p>
+</li>
+</ul>
+<h1 id="2-Kafka"><a href="#2-Kafka" class="headerlink" title="2.Kafka"></a>2.Kafka</h1><p>&emsp;&emsp;Kafka 是由 Linkedin 公司开发的，它是一个分布式的，支持多分区、多副本，基于 <code>Zookeeper</code> 的分布式消息流平台，它同时也是一款开源的基于发布订阅模式的消息引擎系统。</p>
+<h2 id="2-1-什么是Zookeeper"><a href="#2-1-什么是Zookeeper" class="headerlink" title="2.1.什么是Zookeeper"></a>2.1.什么是Zookeeper</h2><p>&emsp;&emsp;<code>ZooKeeper</code> 是一个典型的分布式数据一致性解决方案，分布式应用程序可以基于 <code>ZooKeeper</code> 实现诸如数据发布/订阅、负载均衡、命名服务、分布式协调/通知、集群管理、Master 选举、分布式锁和分布式队列等功能。</p>
+<p>&emsp;&emsp;<code>Zookeeper</code> 一个最常用的使用场景就是用于担任服务生产者和服务消费者的注册中心。 <code>ZooKeeper</code> 主要提供下面几个功能：1、集群管理：容错、负载均衡。2、配置文件的集中管理。3、集群的入口。</p>
+<h3 id="2-1-1-Zookeeper的重要概念"><a href="#2-1-1-Zookeeper的重要概念" class="headerlink" title="2.1.1.Zookeeper的重要概念"></a>2.1.1.Zookeeper的重要概念</h3><ul>
+<li>ZooKeeper 本身就是一个<strong>分布式程序</strong>（只要半数以上节点存活，ZooKeeper 就能正常服务）。</li>
+<li>为了保证高可用，最好是以<strong>集群形态</strong>来部署 ZooKeeper。</li>
+<li>ZooKeeper 将数据保存在<strong>内存</strong>中，这也就保证了<strong>高吞吐量和低延迟</strong>。</li>
+<li>ZooKeeper 是<strong>高性能</strong>的。 在“读”多于“写”的应用程序中尤其地高性能，因为“写”会导致所有的服务器间同步状态。（“读”多于“写”是协调服务的典型场景。）</li>
+<li>ZooKeeper有<strong>临时节点</strong>的概念。 当创建临时节点的客户端会话一直保持活动，临时节点就一直存在。而当会话终结时，临时节点被删除。持久节点是指一旦这个ZNode被创建了，除非主动进行ZNode的移除操作，否则这个ZNode将一直保存在Zookeeper上。</li>
+<li>ZooKeeper 底层其实只提供了两个功能：1、<strong>管理（存储、读取）用户程序提交的数据</strong>；2、<strong>为用户程序提交数据节点监听服务</strong>。</li>
+</ul>
+<h3 id="2-1-2-Zookeeper的特点"><a href="#2-1-2-Zookeeper的特点" class="headerlink" title="2.1.2.Zookeeper的特点"></a>2.1.2.Zookeeper的特点</h3><ul>
+<li><strong>顺序一致性</strong>： 从同一客户端发起的事务请求，最终将会严格地按照顺序被应用到 ZooKeeper 中去。</li>
+<li><strong>原子性</strong>： 所有事务请求的处理结果在整个集群中所有机器上的应用情况是一致的，也就是说，要么整个集群中所有的机器都成功应用了某一个事务，要么都没有应用。</li>
+<li><strong>单一系统映像</strong>： 无论客户端连到哪一个 ZooKeeper 服务器上，其看到的服务端数据模型都是一致的。</li>
+<li><strong>可靠性</strong>： 一旦一次更改请求被应用，更改的结果就会被持久化，直到被下一次更改覆盖。</li>
+</ul>
+<h3 id="2-1-3-ZooKeeper集群角色"><a href="#2-1-3-ZooKeeper集群角色" class="headerlink" title="2.1.3.ZooKeeper集群角色"></a>2.1.3.ZooKeeper集群角色</h3><p>&emsp;&emsp;ZooKeeper 集群中的所有机器通过一个 Leader 选举过程来选定一台称为 Leader 的机器，Leader 既可以为客户端提供写服务又能提供读服务。除了 Leader 外，Follower 和 Observer 都只能提供读服务。Follower 和 Observer 唯一的区别在于 Observer 机器不参与 Leader 的选举过程，也不参与写操作的“过半写成功”策略，因此 Observer 机器可以在不影响写性能的情况下提升集群的读性能。<br><img src="/images/sx/week5/zooKeeper集群角色.jpg" alt=""></p>
+<h3 id="2-1-4-ZooKeeper应用举例参考文章"><a href="#2-1-4-ZooKeeper应用举例参考文章" class="headerlink" title="2.1.4.ZooKeeper应用举例参考文章"></a>2.1.4.ZooKeeper应用举例参考文章</h3><p>&emsp;&emsp;这部分篇幅较长，暂不在此举例。推荐阅读<a href="https://www.cnblogs.com/wuxl360/p/5817471.html" target="_blank" rel="external">ZooKeeper学习第一期—Zookeeper简单介绍</a>的“七、ZooKeeper应用举例”部分，能较好地描述Zoopker在Kafka中扮演的部分角色。</p>
+<h2 id="2-2-Kafka介绍"><a href="#2-2-Kafka介绍" class="headerlink" title="2.2.Kafka介绍"></a>2.2.Kafka介绍</h2><p>&emsp;&emsp;Kafka 是一个分布式流式平台，它有三个关键能力：</p>
+<ol>
+<li>订阅发布记录流，它类似于企业中的消息队列 或 企业消息传递系统</li>
+<li>以容错的方式存储记录流</li>
+<li>实时记录流</li>
+</ol>
+<p>&emsp;&emsp;Kafka的应用场景：</p>
+<ol>
+<li>作为消息系统</li>
+<li>作为存储系统</li>
+<li>作为流处理器</li>
+</ol>
+<p>&emsp;&emsp;Kafka 可以建立流数据管道，可靠性的在系统或应用之间获取数据。建立流式应用传输和响应数据。</p>
+<p>&emsp;&emsp;下图是一个典型的 Kafka 集群：<br><img src="/images/sx/week5/kafka系统架构.png" alt=""></p>
+<h3 id="2-2-1-Kafka-的基本术语"><a href="#2-2-1-Kafka-的基本术语" class="headerlink" title="2.2.1.Kafka 的基本术语"></a>2.2.1.Kafka 的基本术语</h3><ul>
+<li><p><strong>消息</strong>：Kafka 中的数据单元被称为<code>消息</code>，也被称为记录，可以把它看作数据库表中某一行的记录。</p>
+</li>
+<li><p><strong>批次</strong>：为了提高效率， 消息会<code>分批次</code>写入 Kafka，批次就代指的是一组消息。</p>
+</li>
+<li><p><strong>主题</strong>：消息的种类称为 <code>主题</code>（Topic）,可以说一个主题代表了一类消息。相当于是对消息进行分类。主题就像是数据库中的表。</p>
+</li>
+<li><p><strong>分区</strong>：主题可以被分为若干个 <code>分区</code>（Partition），同一个主题中的分区可以不在一个机器上，有可能会部署在多个机器上，由此来实现 kafka 的<code>伸缩性</code>，单一主题中的分区有序，但是无法保证主题中所有的分区有序。</p>
+</li>
+</ul>
+<p><img src="/images/sx/week5/kafka分区示意图.png" alt=""></p>
+<ul>
+<li><p><strong>生产者</strong>： 向主题发布消息的客户端应用程序称为<code>生产者</code>（Producer），生产者用于持续不断的向某个主题发送消息。</p>
+</li>
+<li><p><strong>消费者</strong>：订阅主题消息的客户端程序称为<code>消费者</code>（Consumer），消费者用于处理生产者产生的消息。一个消费者可以消费多个 Topic 的消息，对于某一个 Topic 的消息，其只会消费同一个 Partition 中的消息。</p>
+</li>
+<li><p><strong>消费者群组</strong>：一个生产者对应多个消费者，<code>消费者群组</code>（Consumer Group）指的就是由一个或多个消费者组成的群体。</p>
+</li>
+</ul>
+<p><img src="/images/sx/week5/kafka消费者群组.png" alt=""></p>
+<ul>
+<li><p><strong>偏移量</strong>：<code>偏移量</code>（Consumer Offset）是一种元数据，它是一个不断递增的整数值，用来记录消费者发生重平衡时的位置，以便用来恢复数据。</p>
+</li>
+<li><p><strong>broker</strong>: 一个独立的 Kafka 服务器就被称为 <code>broker</code>，broker 接收来自生产者的消息，为消息设置偏移量，并提交消息到磁盘保存。</p>
+</li>
+<li><p><strong>broker 集群</strong>：broker 是 <code>集群</code> 的组成部分，broker 集群由一个或多个 broker 组成，每个集群都有一个 broker 同时充当了集群控制器的角色（自动从集群的活跃成员中选举出来）。</p>
+</li>
+<li><p><strong>副本</strong>：Kafka 中消息的备份又叫做 <code>副本</code>（Replica），副本的数量是可以配置的，Kafka 定义了两类副本：领导者副本（Leader Replica） 和 追随者副本（Follower Replica），前者对外提供服务，后者只是被动跟随。</p>
+</li>
+<li><p><strong>重平衡</strong>：Rebalance，消费者组内某个消费者实例挂掉后，其他消费者实例自动重新分配订阅主题分区的过程。Rebalance 是 Kafka 消费者端实现<code>高可用</code>的重要手段。</p>
+</li>
+</ul>
+<h3 id="2-2-2-Kafka的特性"><a href="#2-2-2-Kafka的特性" class="headerlink" title="2.2.2.Kafka的特性"></a>2.2.2.Kafka的特性</h3><ul>
+<li><p><strong>高吞吐、低延迟</strong>：kakfa 最大的特点就是收发消息非常快，kafka 每秒可以处理几十万条消息，它的最低延迟只有几毫秒。</p>
+</li>
+<li><p><strong>高伸缩性</strong>：每个主题(topic) 包含多个分区(partition)，主题中的分区可以分布在不同的主机(broker)中。</p>
+</li>
+<li><p><strong>持久性、可靠性</strong>：Kafka 能够允许数据的持久化存储，消息被持久化到磁盘，并支持数据备份防止数据丢失，Kafka 底层的数据存储是基于 Zookeeper 存储的，Zookeeper 我们知道它的数据能够持久存储。</p>
+</li>
+<li><p><strong>容错性</strong>：允许集群中的节点失败，某个节点宕机，Kafka 集群能够正常工作。</p>
+</li>
+<li><p><strong>高并发</strong>：支持数千个客户端同时读写。</p>
+</li>
+</ul>
+<h3 id="2-2-3-Kafka的使用场景"><a href="#2-2-3-Kafka的使用场景" class="headerlink" title="2.2.3.Kafka的使用场景"></a>2.2.3.Kafka的使用场景</h3><ul>
+<li>活动跟踪</li>
+<li>传递消息</li>
+<li>度量指标</li>
+<li>日志记录</li>
+<li>流式处理</li>
+<li>限流削峰</li>
+</ul>
+<h3 id="2-2-4-Kafka为何如此之快"><a href="#2-2-4-Kafka为何如此之快" class="headerlink" title="2.2.4.Kafka为何如此之快"></a>2.2.4.Kafka为何如此之快</h3><ul>
+<li>顺序读写</li>
+<li>零拷贝</li>
+<li>消息压缩</li>
+<li>分批发送</li>
+</ul>
+<p>&emsp;&emsp;Kafka 实现了零拷贝原理来快速移动数据，避免了内核之间的切换。Kafka 可以将数据记录分批发送，从生产者到文件系统（Kafka 主题日志）到消费者，可以端到端的查看这些批次的数据。</p>
+<p>&emsp;&emsp;批处理能够进行更有效的数据压缩并减少 I/O 延迟，Kafka 采取顺序写入磁盘的方式，避免了随机磁盘寻址的浪费。</p>
+<h3 id="2-2-5-核心API"><a href="#2-2-5-核心API" class="headerlink" title="2.2.5.核心API"></a>2.2.5.核心API</h3><p>&emsp;&emsp;Kafka 有四个核心API，它们分别是</p>
+<ul>
+<li><strong>Producer API</strong>，它允许应用程序向一个或多个 Topics 上发送消息记录</li>
+<li><strong>Consumer API</strong>，允许应用程序订阅一个或多个 Topics 并处理为其生成的记录流</li>
+<li><strong>Streams API</strong>，它允许应用程序作为流处理器，从一个或多个主题中消费输入流并为其生成输出流，有效的将输入流转换为输出流。</li>
+<li><strong>Connector API</strong>，它允许构建和运行将 Kafka 主题连接到现有应用程序或数据系统的可用生产者和消费者。例如，关系数据库的连接器可能会捕获对表的所有更改</li>
+</ul>
+<p><img src="/images/sx/week5/Kafka-API.png" alt=""></p>
+<h2 id="2-3-Kafka与ZooKeeper的关系"><a href="#2-3-Kafka与ZooKeeper的关系" class="headerlink" title="2.3.Kafka与ZooKeeper的关系"></a>2.3.Kafka与ZooKeeper的关系</h2><p>&emsp;&emsp;在 kafka 集群中，ZooKeeper 集群用于<code>存放集群元数据</code>、<code>成员管理</code>、<code>Controller 选举</code>，以及其他一些<code>管理类任务</code>。</p>
+<ul>
+<li><strong>存放元数据</strong>: 是指主题分区的所有数据都保存在 ZooKeeper 中，且以它保存的数据为权威，其他 “人” 都要与它保持对齐。</li>
+<li><strong>成员管理</strong>: 是指 Broker 节点的注册、注销以及属性变更。</li>
+<li><strong>Controller 选举</strong>: 是指选举集群 Controller，而其他管理类任务包括但不限于主题删除、参数配置。</li>
+</ul>
+<p>&emsp;&emsp;这部分强烈推荐阅读<a href="https://juejin.im/post/5eef7ab6f265da02cf498fb9" target="_blank" rel="external">Kafka元数据在Zookeeper中的存储分布</a>，它能让你对Zookeeper的作用和两者之间的关系有一个更清晰的了解。另外，可以参考<a href="https://www.cnblogs.com/frankdeng/p/9310713.html" target="_blank" rel="external">Kafka（四）Kafka在ZooKeeper中的存储</a>。</p>
+<p><img src="/images/sx/week5/Kafka在zooKeeper中存储结构图.png" alt=""></p>
+<h2 id="2-4-Docker搭建Kafka集群"><a href="#2-4-Docker搭建Kafka集群" class="headerlink" title="2.4.Docker搭建Kafka集群"></a>2.4.Docker搭建Kafka集群</h2><p>&emsp;&emsp;这里主要参考了<a href="https://blog.csdn.net/noaman_wgs/article/details/103757791" target="_blank" rel="external">【Kafka精进系列003】Docker环境下搭建Kafka集群</a>，利用 <code>docker-compose</code> 可以更轻松的搭建出一个Kafka集群。</p>
+<h3 id="2-4-1-安装Docker-Compose"><a href="#2-4-1-安装Docker-Compose" class="headerlink" title="2.4.1.安装Docker Compose"></a>2.4.1.安装Docker Compose</h3><ul>
+<li>从Github上下载最新版的docker-compose文件：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo curl -L https://github.com/docker/compose/releases/download/1.26.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose</div></pre></td></tr></table></figure>
+<ul>
+<li>添加可执行权限：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo chmod +x /usr/local/bin/docker-compose</div></pre></td></tr></table></figure>
+<ul>
+<li>测试安装结果：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ docker-compose --version</div><div class="line">docker-compose version 1.26.2, build eefe0d31</div></pre></td></tr></table></figure>
+<h3 id="2-4-2-创建Docker-Network"><a href="#2-4-2-创建Docker-Network" class="headerlink" title="2.4.2.创建Docker Network"></a>2.4.2.创建Docker Network</h3><ul>
+<li>创建一个名为 <code>docker_net</code> 的桥接网络，子网为192.168.100.1/24</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">docker network create docker_net --subnet=&quot;192.168.100.1/24&quot;</div></pre></td></tr></table></figure>
+<h3 id="2-4-3-编写Docker-Compose文件"><a href="#2-4-3-编写Docker-Compose文件" class="headerlink" title="2.4.3.编写Docker-Compose文件"></a>2.4.3.编写Docker-Compose文件</h3><ul>
+<li>创建并编写 <code>docker-compose.yml</code>：</li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line"><span class="attr">version:</span> <span class="string">'3'</span></div><div class="line"></div><div class="line"><span class="attr">services:</span></div><div class="line"><span class="attr">  zookeeper:</span></div><div class="line"><span class="attr">    image:</span> <span class="string">wurstmeister/zookeeper</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">zookeeper</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"2181:2181"</span></div><div class="line"><span class="attr">    networks:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">docker_net</span></div><div class="line"></div><div class="line"><span class="attr">  kafka1:</span></div><div class="line"><span class="attr">    image:</span> <span class="string">wurstmeister/kafka</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"9092:9092"</span></div><div class="line"><span class="attr">    environment:</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_HOST_NAME:</span> <span class="number">192.168</span><span class="number">.100</span><span class="number">.1</span></div><div class="line"><span class="attr">      KAFKA_CREATE_TOPICS:</span> <span class="attr">TestComposeTopic:4:3</span></div><div class="line"><span class="attr">      KAFKA_ZOOKEEPER_CONNECT:</span> <span class="attr">zookeeper:2181</span></div><div class="line"><span class="attr">      KAFKA_BROKER_ID:</span> <span class="number">1</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_LISTENERS:</span> <span class="attr">PLAINTEXT://192.168.100.1:9092</span></div><div class="line"><span class="attr">      KAFKA_LISTENERS:</span> <span class="attr">PLAINTEXT://0.0.0.0:9092</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">kafka01</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka1/docker.sock:/var/run/docker.sock"</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka1/data/:/kafka"</span></div><div class="line"><span class="attr">    networks:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">docker_net</span></div><div class="line"></div><div class="line"><span class="attr">  kafka2:</span></div><div class="line"><span class="attr">    image:</span> <span class="string">wurstmeister/kafka</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"9093:9093"</span></div><div class="line"><span class="attr">    environment:</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_HOST_NAME:</span> <span class="number">192.168</span><span class="number">.100</span><span class="number">.1</span></div><div class="line"><span class="attr">      KAFKA_ZOOKEEPER_CONNECT:</span> <span class="attr">zookeeper:2181</span></div><div class="line"><span class="attr">      KAFKA_BROKER_ID:</span> <span class="number">2</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_LISTENERS:</span> <span class="attr">PLAINTEXT://192.168.100.1:9093</span></div><div class="line"><span class="attr">      KAFKA_LISTENERS:</span> <span class="attr">PLAINTEXT://0.0.0.0:9093</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">kafka02</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka2/docker.sock:/var/run/docker.sock"</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka2/data/:/kafka"</span></div><div class="line"><span class="attr">    networks:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">docker_net</span></div><div class="line"></div><div class="line"><span class="attr">  kafka3:</span></div><div class="line"><span class="attr">    image:</span> <span class="string">wurstmeister/kafka</span></div><div class="line"><span class="attr">    ports:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"9094:9094"</span></div><div class="line"><span class="attr">    environment:</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_HOST_NAME:</span> <span class="number">192.168</span><span class="number">.100</span><span class="number">.1</span></div><div class="line"><span class="attr">      KAFKA_ZOOKEEPER_CONNECT:</span> <span class="attr">zookeeper:2181</span></div><div class="line"><span class="attr">      KAFKA_BROKER_ID:</span> <span class="number">3</span></div><div class="line"><span class="attr">      KAFKA_ADVERTISED_LISTENERS:</span> <span class="attr">PLAINTEXT://192.168.100.1:9094</span></div><div class="line"><span class="attr">      KAFKA_LISTENERS:</span> <span class="attr">PLAINTEXT://0.0.0.0:9094</span></div><div class="line"><span class="attr">    container_name:</span> <span class="string">kafka03</span></div><div class="line"><span class="attr">    volumes:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka3/docker.sock:/var/run/docker.sock"</span></div><div class="line"><span class="bullet">      -</span> <span class="string">"./kafka3/data/:/kafka"</span></div><div class="line"><span class="attr">    networks:</span></div><div class="line"><span class="bullet">      -</span> <span class="string">docker_net</span></div><div class="line"></div><div class="line"><span class="attr">networks:</span></div><div class="line"><span class="attr">  docker_net:</span></div><div class="line"><span class="attr">    external:</span> <span class="literal">true</span></div></pre></td></tr></table></figure>
+<h3 id="2-4-4-启动Kafka集群"><a href="#2-4-4-启动Kafka集群" class="headerlink" title="2.4.4.启动Kafka集群"></a>2.4.4.启动Kafka集群</h3><ul>
+<li>使用Docker Compose启动Kafka集群：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># 前台启动</div><div class="line">docker-compose up</div><div class="line"># 后台启动（推荐）</div><div class="line">docker-compose up -d</div></pre></td></tr></table></figure>
+<ul>
+<li>启动后，可以通过以下命令查看容器的IP：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">docker inspect --format &apos;&#123;&#123; .NetworkSettings.Networks.your_docker_net_name.IPAddress &#125;&#125;&apos; &lt;container id&gt;</div><div class="line"># 或</div><div class="line">docker inspect &lt;container id&gt;</div><div class="line"># 或</div><div class="line">docker inspect -f &apos;&#123;&#123;range .NetworkSettings.Networks&#125;&#125;&#123;&#123;.IPAddress&#125;&#125;&#123;&#123;end&#125;&#125;&apos; &lt;container id | container name&gt;</div></pre></td></tr></table></figure>
+<h3 id="2-4-5-验证"><a href="#2-4-5-验证" class="headerlink" title="2.4.5.验证"></a>2.4.5.验证</h3><ul>
+<li>进入其中一个 Kafka Broker 容器，执行以下命令，查看Topic信息：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kafka-topics.sh --describe --zookeeper 192.168.100.5:2181 --topic TestComposeTopic</div></pre></td></tr></table></figure>
+<p><img src="/images/sx/week5/kafka-docker1.png" alt=""></p>
+<ul>
+<li>进入Broker1容器，执行：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kafka-console-producer.sh --broker-list 192.168.100.2:9092 --topic TestComposeTopic</div></pre></td></tr></table></figure>
+<ul>
+<li>进入Broker2容器，执行：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kafka-console-consumer.sh --bootstrap-server 192.168.100.4:9093 --topic TestComposeTopic --from-beginning</div></pre></td></tr></table></figure>
+<ul>
+<li>进入Broker3容器，执行：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kafka-console-consumer.sh --bootstrap-server 192.168.100.3:9094 --topic TestComposeTopic --from-beginning</div></pre></td></tr></table></figure>
+<p><img src="/images/sx/week5/kafka-docker2.png" alt=""><br><img src="/images/sx/week5/kafka-docker3.png" alt=""><br><img src="/images/sx/week5/kafka-docker4.png" alt=""></p>
+<h2 id="2-5-Kafka与其他MQ的区别"><a href="#2-5-Kafka与其他MQ的区别" class="headerlink" title="2.5.Kafka与其他MQ的区别"></a>2.5.Kafka与其他MQ的区别</h2><p>&emsp;&emsp;首先推荐阅读<a href="https://blog.csdn.net/yunfeng482/article/details/72856762" target="_blank" rel="external">Kafka、RabbitMQ、RocketMQ等消息中间件的介绍和对比</a>，里面比较详细的介绍并比较了多种消息中间件。下面以RabbitMQ与Kafka进行对比：</p>
+<ul>
+<li><p><strong>在应用场景方面</strong><br>&emsp;&emsp;RabbitMQ,遵循AMQP协议，由内在高并发的erlanng语言开发，用在实时的对可靠性要求比较高的消息传递上。<br>&emsp;&emsp;Kafka是Linkedin于2010年12月份开源的消息发布订阅系统，它主要用于处理活跃的流式数据，大数据量的数据处理上。</p>
+</li>
+<li><p><strong>在架构模型方面</strong><br>&emsp;&emsp;RabbitMQ的broker由Exchange、Binding、queue组成，其中exchange和binding组成了消息的路由键；客户端Producer通过连接channel和server进行通信，Consumer从queue获取消息进行消费。rabbitMQ以broker为中心；有消息的确认机制。<br>&emsp;&emsp;Kafka遵从一般的MQ结构：producer、broker、consumer。以consumer为中心，消息的消费信息保存的客户端consumer上，consumer根据消费的点，从broker上批量pull数据；无消息确认机制。</p>
+</li>
+<li><p><strong>在吞吐量</strong><br>&emsp;&emsp;RabbitMQ在吞吐量方面稍逊于kafka，rabbitMQ支持对消息的可靠的传递，支持事务，不支持批量的操作；基于存储的可靠性的要求存储可以采用内存或者硬盘。<br>&emsp;&emsp;Kafka具有高的吞吐量，内部采用消息的批量处理，zero-copy机制，数据的存储和获取是本地磁盘顺序批量操作，具有O(1)的复杂度，消息处理的效率很高。</p>
+</li>
+<li><p><strong>在可用性方面</strong><br>&emsp;&emsp;rabbitMQ支持miror的queue，主queue失效，miror queue接管。<br>&emsp;&emsp;Kafka的broker支持主备模式。</p>
+</li>
+<li><p><strong>在集群负载均衡方面</strong><br>&emsp;&emsp;RabbitMQ的负载均衡需要单独的loadbalancer进行支持。<br>&emsp;&emsp;Kafka采用zookeeper对集群中的broker、consumer进行管理，可以注册topic到zookeeper上；通过zookeeper的协调机制，producer保存对应topic的broker信息，可以随机或者轮询发送到broker上；并且producer可以基于语义指定分片，消息发送到broker的某分片上。</p>
+</li>
+</ul>
+<h2 id="2-6-参考"><a href="#2-6-参考" class="headerlink" title="2.6.参考"></a>2.6.参考</h2><p><a href="https://segmentfault.com/a/1190000016349824" target="_blank" rel="external">可能是全网把 ZooKeeper 概念讲的最清楚的一篇文章</a><br><a href="https://mp.weixin.qq.com/s?__biz=MzU2NDg0OTgyMA==&amp;mid=2247484570&amp;idx=1&amp;sn=1ad1c96bc7d47b88e976cbd045baf7d7&amp;chksm=fc45f969cb32707f882c52d7434b2c0bf2ccbbc2cd854e1dc5c203deb8ae9c1831cf216e8bad&amp;token=674527772&amp;lang=zh_CN#rd" target="_blank" rel="external">带你涨姿势的认识一下kafka</a><br><a href="https://juejin.im/post/5ddf5659518825782d599641" target="_blank" rel="external">真的，Kafka 入门一篇文章就够了</a><br><a href="https://segmentfault.com/a/1190000021221606" target="_blank" rel="external">kafka 中 zookeeper 具体是做什么的？</a><br><a href="https://www.jianshu.com/p/8a61bb2a9219" target="_blank" rel="external">zookeeper在kafka中的作用</a><br><a href="https://www.iteye.com/blog/soledede-1974988" target="_blank" rel="external">RabbitMQ和kafka从几个角度简单的对比</a></p>
+<h1 id="3-NSQ"><a href="#3-NSQ" class="headerlink" title="3.NSQ"></a>3.NSQ</h1><p>&emsp;&emsp;NSQ 是一个基于Go语言的分布式实时消息平台，它基于MIT开源协议发布，由bitly公司开源出来的一款简单易用的消息中间件。 NSQ 可用于大规模系统中的实时消息服务，并且每天能够处理数亿级别的消息，其设计目标是为在分布式环境下运行的去中心化服务提供一个强大的基础架构。 NSQ 具有分布式、去中心化的拓扑结构，该结构具有无单点故障、故障容错、高可用性以及能够保证消息的可靠传递的特征。NSQ 非常容易配置和部署，且具有最大的灵活性，支持众多消息协议。</p>
+<h2 id="3-1-NSQ组件"><a href="#3-1-NSQ组件" class="headerlink" title="3.1.NSQ组件"></a>3.1.NSQ组件</h2><p>&emsp;&emsp;NSQ 由 3 个守护进程组成:</p>
+<ul>
+<li><strong>nsqd</strong> 一个负责接收、排队、转发消息到客户端的守护进程。</li>
+<li><strong>nsqlookupd</strong> 是管理的拓扑信息，并提供了最终一致发现服务的守护进程。</li>
+<li><strong>nsqadmin</strong> 是一个 Web UI 来实时监控集群和执行各种管理任务。</li>
+</ul>
+<h2 id="3-2-NSQ的特点"><a href="#3-2-NSQ的特点" class="headerlink" title="3.2.NSQ的特点"></a>3.2.NSQ的特点</h2><ul>
+<li>具有分布式且无单点故障的拓扑结构，支持水平扩展，在无中断情况下能够无缝地添加集群节点；</li>
+<li>低延迟的消息推送；</li>
+<li>具有组合式的负载均衡和多播形式的消息路由；</li>
+<li>既擅长处理面向流（高吞吐量）的工作负载，也擅长处理面向 Job 的（低吞吐量）工作负载；</li>
+<li>消息数据既可以存储于内存中，也可以存储在磁盘中；</li>
+<li>实现了生产者、消费者自动发现和消费者自动连接生产者，参见 nsqlookupd；</li>
+<li>支持安全传输层协议（TLS），从而确保了消息传递的安全性；</li>
+<li>具有与数据格式无关的消息结构，支持 JSON、Protocol Buffers、MsgPacek 等消息格式；</li>
+<li>非常易于部署（几乎没有依赖）和配置（所有参数都可以通过命令行进行配置）；</li>
+<li>使用了简单的 TCP 协议且具有多种语言的客户端功能库；</li>
+<li>具有用于信息统计、管理员操作和实现生产者等的 HTTP 接口；</li>
+<li>为实时检测集成了统计数据收集器 StatsD；</li>
+<li>具有强大的集群管理界面，参见 nsqadmin。</li>
+</ul>
+<h2 id="3-3-NSQ架构"><a href="#3-3-NSQ架构" class="headerlink" title="3.3.NSQ架构"></a>3.3.NSQ架构</h2><p><img src="/images/sx/week5/nsq架构图.jpg" alt=""></p>
+<p>&emsp;&emsp;既然 NSQ 也是消息中间件，也就有 Topic、Producer、Consumer这三个主要概念。其中 Topic、Producer 不再详细描述，主要讲讲不同之处。</p>
+<h2 id="3-1-Channel消息传递的通道"><a href="#3-1-Channel消息传递的通道" class="headerlink" title="3.1.Channel消息传递的通道"></a>3.1.Channel消息传递的通道</h2><ul>
+<li>当生产者每次发布消息的时候，消息会<strong>采用多播的方式</strong>被拷贝到各个 Channel ，Channel <strong>起到队列的作用</strong>。</li>
+<li>Channel 与 Consumer 相关，是消费者之间的<strong>负载均衡</strong>，消费者通过这个特殊的 Channel 读取消息。</li>
+<li>在 Consumer 想单独获取某个 Topic 的消息时，可以 Subscribe(订阅) 一个自己单独命名的 nsqd 中还不存在的 Channel ， nsqd 会为这个 Consumer 创建其命名的 Channel 。</li>
+<li>Channel <strong>会将消息进行排列</strong>，如果没有 Consumer 读取消息，消息首先会在<strong>内存</strong>中排队，当量太大时就会被保存到<strong>磁盘</strong>中。</li>
+<li><strong>一个 channel 一般会有多个 Consumer 连接</strong>。假设所有已连接的 Consumer 处于准备接收消息的状态，每个消息将被传递到<strong>一个随机的 Consumer</strong> 。</li>
+<li>Go语言中的 Channel 是表达队列的一种自然方式，因此一个NSQ的 Topic/Channel，其核心就是一个<strong>存放消息指针的Go-channel缓冲区</strong>。</li>
+</ul>
+<h2 id="3-2-Consumer消息的消费者"><a href="#3-2-Consumer消息的消费者" class="headerlink" title="3.2.Consumer消息的消费者"></a>3.2.Consumer消息的消费者</h2><ul>
+<li>Consumer 通过 <strong>TCP</strong> Subscribe 自己需要的 Channel。</li>
+<li>Topic 和 Channel 都<strong>没有预先配置</strong>。 Topic 由第一次发布消息到命名 Topic 的 Producer 创建 或 第一次通过 Subscribe 订阅一个命名 Topic 的 Consumer 来创建。 Channel 被 Consumer 第一次 Subscribe 订阅到指定的 Channel 创建。</li>
+<li><strong>多个 Consumer Subscribe 一个 Channel</strong> ，假设所有已连接的客户端处于准备接收消息的状态，每个消息将被传递到一个 <strong>随机</strong> 的 Consumer 。</li>
+<li>NSQ 支持<strong>延时消息</strong>， Consumer 在配置的延时时间后才能接受相关消息。</li>
+<li><strong>Channel 在 Consumer 退出后并不会删除</strong>。</li>
+</ul>
+<h2 id="3-4-NSQ数据流模型结构"><a href="#3-4-NSQ数据流模型结构" class="headerlink" title="3.4.NSQ数据流模型结构"></a>3.4.NSQ数据流模型结构</h2><p>&emsp;&emsp;单个 nsqd 被设计为一次能够处理多个流数据，NSQ 中的数据流模型是由 stream 和 consumer 组成。Topic 是一种独特的 stream，Channel 是一个订阅了给定 Topic 的 consumer 逻辑分组。NSQ 的数据流模型结构如下图所示：</p>
+<p><img src="/images/sx/week5/nsq数据流模型结构.gif" alt=""></p>
+<p>&emsp;&emsp;从上图可以看出，单个 nsqd 可以有多个 Topic，每个 Topic 又可以有多个 Channel。Channel 能够接收 Topic 所有消息的副本，从而实现了消息多播分发；而 Channel 上的每个消息被分发给它的订阅者，从而实现负载均衡，所有这些就组成了一个可以表示各种简单和复杂拓扑结构的强大框架。</p>
+<h2 id="3-5-本地搭建NSQ服务"><a href="#3-5-本地搭建NSQ服务" class="headerlink" title="3.5.本地搭建NSQ服务"></a>3.5.本地搭建NSQ服务</h2><p>&emsp;&emsp;这部分很简单，直接从<a href="https://github.com/nsqio/nsq/releases" target="_blank" rel="external">Github Release</a>上，下载对应版本的压缩包，例如我这里下载的是 <code>nsq-1.2.0.windows-amd64.go1.12.9.tar.gz</code>。解压压缩包，并开启多个终端，进入目标目录。</p>
+<ul>
+<li>启动nsqlookud：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">.\nsqlookud.exe</div></pre></td></tr></table></figure>
+<ul>
+<li>启动nsqd，并接入刚刚启动的nsqlookud：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">.\nsqd.exe --lookupd-tcp-address=127.0.0.1:4160</div><div class="line"></div><div class="line">.\nsqd.exe --lookupd-tcp-address=127.0.0.1:4160 --tcp-address=0.0.0.0:4152 --http-address=0.0.0.0:4153</div></pre></td></tr></table></figure>
+<ul>
+<li>启动nqsadmin，可以在localhost:4171访问Web页面：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">.\nsqadmin.exe --lookupd-http-address=127.0.0.1:4161</div></pre></td></tr></table></figure>
+<ul>
+<li>Nsq发送端示例：</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"><span class="keyword">import</span> (</div><div class="line">  <span class="string">"bufio"</span></div><div class="line">  <span class="string">"fmt"</span></div><div class="line">  <span class="string">"os"</span></div><div class="line"></div><div class="line">  <span class="string">"github.com/nsqio/go-nsq"</span></div><div class="line">)</div><div class="line"><span class="keyword">var</span> producer *nsq.Producer</div><div class="line"><span class="comment">// 主函数</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">  strIP1 := <span class="string">"127.0.0.1:4150"</span></div><div class="line">  strIP2 := <span class="string">"127.0.0.1:4152"</span></div><div class="line">  InitProducer(strIP1)</div><div class="line">  running := <span class="literal">true</span></div><div class="line">  <span class="comment">//读取控制台输入</span></div><div class="line">  reader := bufio.NewReader(os.Stdin)</div><div class="line">  <span class="keyword">for</span> running &#123;</div><div class="line">    data, _, _ := reader.ReadLine()</div><div class="line">    command := <span class="keyword">string</span>(data)</div><div class="line">    <span class="keyword">if</span> command == <span class="string">"stop"</span> &#123;</div><div class="line">      running = <span class="literal">false</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">for</span> err := Publish(<span class="string">"test"</span>, command); err != <span class="literal">nil</span>; err = Publish(<span class="string">"test"</span>, command) &#123;</div><div class="line">      <span class="comment">//切换IP重连</span></div><div class="line">      strIP1, strIP2 = strIP2, strIP1</div><div class="line">      InitProducer(strIP1)</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">//关闭</span></div><div class="line">  producer.Stop()</div><div class="line">&#125;</div><div class="line"><span class="comment">// 初始化生产者</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">InitProducer</span><span class="params">(str <span class="keyword">string</span>)</span></span> &#123;</div><div class="line">  <span class="keyword">var</span> err error</div><div class="line">  fmt.Println(<span class="string">"address: "</span>, str)</div><div class="line">  producer, err = nsq.NewProducer(str, nsq.NewConfig())</div><div class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="built_in">panic</span>(err)</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//发布消息</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">Publish</span><span class="params">(topic <span class="keyword">string</span>, message <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</div><div class="line">  <span class="keyword">var</span> err error</div><div class="line">  <span class="keyword">if</span> producer != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="keyword">if</span> message == <span class="string">""</span> &#123; <span class="comment">//不能发布空串，否则会导致error</span></div><div class="line">      <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">    &#125;</div><div class="line">    err = producer.Publish(topic, []<span class="keyword">byte</span>(message)) <span class="comment">// 发布消息</span></div><div class="line">    <span class="keyword">return</span> err</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> fmt.Errorf(<span class="string">"producer is nil"</span>, err)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>Nsq接收端示例：</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"><span class="keyword">import</span> (</div><div class="line">  <span class="string">"fmt"</span></div><div class="line">  <span class="string">"time"</span></div><div class="line">  <span class="string">"github.com/nsqio/go-nsq"</span></div><div class="line">)</div><div class="line"></div><div class="line"><span class="comment">// 消费者</span></div><div class="line"><span class="keyword">type</span> ConsumerT <span class="keyword">struct</span>&#123;&#125;</div><div class="line"><span class="comment">// 主函数</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">  InitConsumer(<span class="string">"test"</span>, <span class="string">"test-channel"</span>, <span class="string">"127.0.0.1:4161"</span>)</div><div class="line">  <span class="keyword">for</span> &#123;</div><div class="line">    time.Sleep(time.Second * <span class="number">10</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//处理消息</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(*ConsumerT)</span> <span class="title">HandleMessage</span><span class="params">(msg *nsq.Message)</span> <span class="title">error</span></span> &#123;</div><div class="line">  fmt.Println(<span class="string">"receive"</span>, msg.NSQDAddress, <span class="string">"message:"</span>, <span class="keyword">string</span>(msg.Body))</div><div class="line">  <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//初始化消费者</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">InitConsumer</span><span class="params">(topic <span class="keyword">string</span>, channel <span class="keyword">string</span>, address <span class="keyword">string</span>)</span></span> &#123;</div><div class="line">  cfg := nsq.NewConfig()</div><div class="line">  cfg.LookupdPollInterval = time.Second          <span class="comment">//设置重连时间</span></div><div class="line">  c, err := nsq.NewConsumer(topic, channel, cfg) <span class="comment">// 新建一个消费者</span></div><div class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="built_in">panic</span>(err)</div><div class="line">  &#125;</div><div class="line">  c.SetLogger(<span class="literal">nil</span>, <span class="number">0</span>)        <span class="comment">//屏蔽系统日志</span></div><div class="line">  c.AddHandler(&amp;ConsumerT&#123;&#125;) <span class="comment">// 添加消费者接口</span></div><div class="line"></div><div class="line">  <span class="comment">//建立NSQLookupd连接</span></div><div class="line">  <span class="comment">//if err := c.ConnectToNSQLookupd(address); err != nil &#123;</span></div><div class="line">  <span class="comment">//	panic(err)</span></div><div class="line">  <span class="comment">//&#125;</span></div><div class="line"></div><div class="line">  <span class="comment">//建立多个nsqd连接</span></div><div class="line">  <span class="keyword">if</span> err := c.ConnectToNSQDs([]<span class="keyword">string</span>&#123;<span class="string">"127.0.0.1:4150"</span>, <span class="string">"127.0.0.1:4152"</span>&#125;); err != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="built_in">panic</span>(err)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>分别运行发送端和接收端，然后在发送端发送数据，得到如下结果：<br><img src="/images/sx/week5/nsq-send.png" alt=""><br><img src="/images/sx/week5/nsq-receive.png" alt=""></li>
+</ul>
+<h2 id="3-6-参考"><a href="#3-6-参考" class="headerlink" title="3.6.参考"></a>3.6.参考</h2><p><a href="https://www.infoq.cn/article/2015/02/nsq-distributed-message-platform" target="_blank" rel="external">NSQ：分布式的实时消息平台</a><br><a href="https://segmentfault.com/a/1190000009194607" target="_blank" rel="external">golang使用Nsq</a></p>
+<h1 id="4-Hippo"><a href="#4-Hippo" class="headerlink" title="4.Hippo"></a>4.Hippo</h1><p>&emsp;&emsp;Hippo 是腾讯开发的分布式消息系统，推荐阅读一下<a href="https://data.qq.com/article?id=2670" target="_blank" rel="external">分布式高可靠消息中间件Hippo</a>。官方介绍说可以满足具有高可靠高可用应用场景的业务需求，用以支撑广告计费，交易流水等高价值数据的业务。</p>
+<p>&emsp;&emsp;Hippo 由于是内部闭源组件，可以参考的资料十分有限，但通过上述的学习，其内部设计思路有很多相似之处，可以相互借鉴参考。例如，Kafka中的Zookeeper、Nsq中的nsqlookupd、Hippo中的Controller三者扮演的角色十分相近，主要是提供服务发现、故障转移等管理类服务。</p>
+<h2 id="4-1-Hippo系统架构"><a href="#4-1-Hippo系统架构" class="headerlink" title="4.1.Hippo系统架构"></a>4.1.Hippo系统架构</h2><p>&emsp;&emsp;系统逻辑结构图如下：<br><img src="/image/sx/week5/hippo系统逻辑结构图.jpg" alt=""></p>
+<p>&emsp;&emsp;系统交互图如下：<br><img src="/image/sx/week5/hippo系统交互图.jpg" alt=""></p>
+<p>&emsp;&emsp;Hippo系统存在四种角色，分别为生产者（producer）、 消费者（consumer）、存储层（broker）、中心控制节点（controller）。</p>
+<ul>
+<li><p><strong>Controller</strong><br>&emsp;&emsp;以组的形势存在，三台controller<strong>一主两备组成一个组</strong>承担着整个系统节点数据的收集、状态的共享及事件的分发角色。</p>
+</li>
+<li><p><strong>Broker</strong><br>&emsp;&emsp;以组的形势存在，三台broker<strong>一主两备组成一个组</strong>，<strong>由主broker向controller定期汇报心跳</strong>以告知controller当前组的存活状态，心跳携带当前组所管理的topic及queue信息。<br>&emsp;&emsp;数据在broker以<strong>多副本</strong>的方式存储，<strong>Master broker为数据写入入口</strong>，并把数据实时同步给同组的两台Slave broker，<strong>主备broker之间存在心跳检测</strong>功能。数据冗余存储在不同的物理机器中，即使存在机器宕机或磁盘损坏的情况也不影响系统可靠对外提供服务。</p>
+</li>
+<li><p><strong>Producer</strong><br>&emsp;&emsp;<strong>轮询发送</strong>：向controller发布某个topic的信息，controller返回相应topic所在的所有broker组对应的IP端口及queue信息。producer轮询所获取的broker组信息列表发送消息并<strong>保持与controller的心跳</strong>，以便在broker组存在变更时，能够通过controller及时获取到最新的broker组信息。</p>
+</li>
+<li><p><strong>Consumer</strong><br>&emsp;&emsp;<strong>负载均衡</strong>：每个consumer都隶属于一个消费组，向controller订阅某个topic的消息，controller返回<strong>topic对应的所有broker组信息列表、同处一个消费组的其它消费者信息列表</strong>，当前消费者获取到这两部分信息之后会进行排序然后按照固定的算法进行负载均衡以确定每个消费者具体消费哪个队列分区。同时每个consumer都会<strong>定期的向controller上报心跳</strong>，一旦消费组有节点数量或broker组存在变更，controller都会及时的通过心跳响应返回给当前组所有存活的consumer节点，以进行新一轮的负载均衡。<br>&emsp;&emsp;<strong>消费确认</strong>：consumer进行消费的过程中对队列分区是以<strong>独占的形式</strong>存在的，即一个队列在一个消费组中<strong>只能被一个消费者占有并消费</strong>。为了保证消费的可靠对于每次拉取的数据，都需要consumer端在消费完成之后进行一次确认，否则下次拉取还是从原来的偏移量开始。<br>&emsp;&emsp;<strong>限时锁定</strong>：为了使某个consumer宕机其占有的队列分区能够顺利的释放并被其他consumer获取到，需要在每个消费者拉取数据与确认回调之间设置一个<strong>超时时间</strong>，一旦超过这个时间还没确认，那么队列<strong>自动解锁</strong>，解锁之后的队列最终能够被别的存活消费者占有并消费。</p>
+</li>
+</ul>
+<h1 id="5-结语"><a href="#5-结语" class="headerlink" title="5.结语"></a>5.结语</h1><p>　　这是在实习过程中学习到的新知识，且全部是开源数据或者资料，因此分享出来，希望我和大家都有所收获。<br><blockquote><p>参考资料已经在文中列出，这里不再一一列举。</p>
+<footer><strong>转载说明</strong></footer></blockquote></p>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2020/06/28/gRPC-basic/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+  </div>
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>
