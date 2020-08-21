@@ -26,7 +26,7 @@
 <meta property="og:image" content="http://jiacyer.com/images/sx/week3/grpc-pic1.png">
 <meta property="og:image" content="http://jiacyer.com/images/sx/week3/grpc-pic2.png">
 <meta property="og:image" content="http://jiacyer.com/images/sx/week3/protobuf-pic1.png">
-<meta property="og:updated_time" content="2020-07-11T04:16:14.571Z">
+<meta property="og:updated_time" content="2020-07-11T05:17:22.575Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="gRPC源码分析">
 <meta name="twitter:description" content="1.RPC 入门1.1.RPC 框架原理&amp;emsp;&amp;emsp;RPC 框架的目标就是让远程服务调用更加简单、透明，RPC 框架负责屏蔽底层的传输方式（TCP 或者 UDP）、序列化方式（XML/Json/ 二进制）和通信细节。服务调用者可以像调用本地接口一样调用远程的服务提供者，而不需要关心底层通信细节和调用过程。 &amp;emsp;&amp;emsp;RPC框架的调用原理图如下所示： 1.2.业界主流的 R">
@@ -205,7 +205,7 @@
       
   <span class="article-category">
     <i class="icon-list"></i>
-    <a class="article-category-link" href="/categories/RPC/">RPC</a>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
   </span>
 
 
@@ -338,7 +338,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"># Server输出</div><div class="line">2020/06/22 11:44:26 SayHello Func Received: world, number: 1000</div><div class="line">2020/06/22 11:44:26 SayHi Func Received: world, number: 1000</div><div class="line"></div><div class="line"># Client输出</div><div class="line">2020/06/22 11:44:26 Speaking: Hello world, 0</div><div class="line">2020/06/22 11:44:26 Speaking: Hi world, 200</div></pre></td></tr></table></figure>
 <p>&emsp;&emsp;其实整个过程跟官方Demo区别不大。最大的不同是官方Demo中的 <code>/examples/helloword/helloword</code> 目录下生成了2个 <code>.go</code> 文件；而我自己测试过程中，编译 <code>.proto</code> 文件后只生成了1个 <code>.go</code> 文件，但其中包含了官方Demo中的所有数据结构、函数，并无本质不同。</p>
 <h3 id="3-4-1-Goland执行go-get报SSL-certificate-problem-unable-to-get-local-issuer-certificate错误"><a href="#3-4-1-Goland执行go-get报SSL-certificate-problem-unable-to-get-local-issuer-certificate错误" class="headerlink" title="3.4.1.Goland执行go get报SSL certificate problem: unable to get local issuer certificate错误"></a>3.4.1.Goland执行go get报SSL certificate problem: unable to get local issuer certificate错误</h3><p>&emsp;&emsp;由于这里使用了Goland，和VS Code连接到开发机直接写代码不同，所以需要在Windows上下载项目依赖，执行 <code>go get</code> 报错。原因是证书过期/或者换证书了，解决方案如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> 取消对证书的合法性验证</div><div class="line">git config --global http.sslverify false</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> 取消对证书的合法性验证</span></div><div class="line">git config --global http.sslverify false</div></pre></td></tr></table></figure>
 <h1 id="4-参考"><a href="#4-参考" class="headerlink" title="4.参考"></a>4.参考</h1><p><a href="https://jiangew.me/grpc-01/" target="_blank" rel="external">gRPC 源码阅读系列 01：gRPC 服务端创建和调用</a>（这是Java版本的gRPC源码解读，有一定的共通性）</p>
 <h1 id="5-结语"><a href="#5-结语" class="headerlink" title="5.结语"></a>5.结语</h1><p>　　这是在实习过程中学习到的新知识，且全部是开源数据或者资料，因此分享出来，希望我和大家都有所收获。<br><blockquote><p>参考资料已经在文中列出，这里不再一一列举。</p>
 <footer><strong>转载说明</strong></footer></blockquote></p>

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>有赞版本 NSQ 源码解析 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Golang,NSQ,消息队列," />
+  
+
+  <meta name="description" content="1.官方版NSQ存在的问题&amp;emsp;&amp;emsp;在暑期实习期间，我粗略学习了一下 Kafka、NSQ、Hippo，并对它们的基础组件或者特性做了总结，但忽略了很重要的一点：把 Kafka、NSQ 进行对比，看看各自的优缺点。这部分的学习，对后来我完成组里事件中心的 Agent 组件起到了不小的帮助。 存储Message的额外消耗    Kafka 官方版本NSQ 有赞版本NSQ     至少26">
+<meta name="keywords" content="Golang,NSQ,消息队列">
+<meta property="og:type" content="article">
+<meta property="og:title" content="有赞版本 NSQ 源码解析">
+<meta property="og:url" content="http://jiacyer.com/2020/07/31/youzan-nsq/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="1.官方版NSQ存在的问题&amp;emsp;&amp;emsp;在暑期实习期间，我粗略学习了一下 Kafka、NSQ、Hippo，并对它们的基础组件或者特性做了总结，但忽略了很重要的一点：把 Kafka、NSQ 进行对比，看看各自的优缺点。这部分的学习，对后来我完成组里事件中心的 Agent 组件起到了不小的帮助。 存储Message的额外消耗    Kafka 官方版本NSQ 有赞版本NSQ     至少26">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ-redesigned-arch.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ目录.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ-落盘优化.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ-元数据结构图.jpg">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ-leader选举.png">
+<meta property="og:image" content="http://jiacyer.com/images/sx/week8/NSQ-数据副本同步.png">
+<meta property="og:updated_time" content="2020-08-21T12:59:28.001Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="有赞版本 NSQ 源码解析">
+<meta name="twitter:description" content="1.官方版NSQ存在的问题&amp;emsp;&amp;emsp;在暑期实习期间，我粗略学习了一下 Kafka、NSQ、Hippo，并对它们的基础组件或者特性做了总结，但忽略了很重要的一点：把 Kafka、NSQ 进行对比，看看各自的优缺点。这部分的学习，对后来我完成组里事件中心的 Agent 组件起到了不小的帮助。 存储Message的额外消耗    Kafka 官方版本NSQ 有赞版本NSQ     至少26">
+<meta name="twitter:image" content="http://jiacyer.com/images/sx/week8/NSQ-redesigned-arch.png">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-官方版NSQ存在的问题"><span class="toc-text">1.官方版NSQ存在的问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-有赞版本的NSQ"><span class="toc-text">2.有赞版本的NSQ</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-源码目录结构"><span class="toc-text">2.1.源码目录结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-nsqd的启动"><span class="toc-text">2.2.nsqd的启动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-TCP监听"><span class="toc-text">2.2.1.TCP监听</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-HTTP监听"><span class="toc-text">2.2.2.HTTP监听</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-提交消息到Topic"><span class="toc-text">2.3.提交消息到Topic</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1-消费channel的数据同步处理"><span class="toc-text">2.3.1.消费channel的数据同步处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2-internalPUB方法"><span class="toc-text">2.3.2.internalPUB方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-3-internalPubAsync函数"><span class="toc-text">2.3.3.internalPubAsync函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-4-internalPubLoop方法"><span class="toc-text">2.3.4.internalPubLoop方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-支持数据副本和高可用"><span class="toc-text">2.4.支持数据副本和高可用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-1-元数据存储"><span class="toc-text">2.4.1.元数据存储</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-2-Leader选举"><span class="toc-text">2.4.2.Leader选举</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-3-从代码角度进行大致梳理"><span class="toc-text">2.4.3.从代码角度进行大致梳理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-数据副本同步和动态ISR"><span class="toc-text">2.5.数据副本同步和动态ISR</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-1-从代码角度进行大致梳理"><span class="toc-text">2.5.1.从代码角度进行大致梳理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-严格顺序消费"><span class="toc-text">2.6.严格顺序消费</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-1-存在的问题"><span class="toc-text">2.6.1.存在的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-2-解决方式"><span class="toc-text">2.6.2.解决方式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-7-消息轨迹查询系统"><span class="toc-text">2.7.消息轨迹查询系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-8-其他特性"><span class="toc-text">2.8.其他特性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-参考资料"><span class="toc-text">3.参考资料</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-结语"><span class="toc-text">4.结语</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-youzan-nsq" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">有赞版本 NSQ 源码解析</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.07.31</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="1-官方版NSQ存在的问题"><a href="#1-官方版NSQ存在的问题" class="headerlink" title="1.官方版NSQ存在的问题"></a>1.官方版NSQ存在的问题</h1><p>&emsp;&emsp;在暑期实习期间，我粗略学习了一下 <code>Kafka</code>、<code>NSQ</code>、<code>Hippo</code>，并对它们的基础组件或者特性做了总结，但忽略了很重要的一点：把 <code>Kafka</code>、<code>NSQ</code> 进行对比，看看各自的优缺点。这部分的学习，对后来我完成组里事件中心的 Agent 组件起到了不小的帮助。</p>
+<p><strong>存储Message的额外消耗</strong></p>
+<table>
+<thead>
+<tr>
+<th>Kafka</th>
+<th>官方版本NSQ</th>
+<th>有赞版本NSQ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>至少26字节</td>
+<td>24字节</td>
+<td>16字节</td>
+</tr>
+</tbody>
+</table>
+<p><strong>主要特性</strong></p>
+<table>
+<thead>
+<tr>
+<th>\</th>
+<th>NSQ</th>
+<th>Kafka</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>数据安全</strong></td>
+<td>内存存储，超出Channel容量后，磁盘存储，不支持热备</td>
+<td>磁盘存储，多节点互备</td>
+</tr>
+<tr>
+<td><strong>依赖</strong></td>
+<td>无</td>
+<td>JDK、Zookeeper</td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>十万级</td>
+<td>百万级</td>
+</tr>
+<tr>
+<td><strong>刷盘机制</strong></td>
+<td>异步刷盘</td>
+<td>异步刷盘</td>
+</tr>
+<tr>
+<td><strong>投递语义</strong></td>
+<td>至少一次</td>
+<td>准确一次</td>
+</tr>
+<tr>
+<td><strong>消息顺序</strong></td>
+<td>不保证有序</td>
+<td>支持有条件的有序</td>
+</tr>
+<tr>
+<td><strong>配置</strong></td>
+<td>不到五十项</td>
+<td>数百个配置项</td>
+</tr>
+<tr>
+<td><strong>异常排查</strong></td>
+<td>源码量小，排查容易</td>
+<td>源码量巨大，排查困难</td>
+</tr>
+</tbody>
+</table>
+<p>&emsp;&emsp;其实，<code>Kafka</code>、<code>NSQ</code> 各有优势，本身都是非常优秀的产品。但是，<code>NSQ</code> 作为分布式消息中间件最致命的是<strong>节点异常情况下的数据丢失</strong>问题。</p>
+<p>&emsp;&emsp;这里推荐一篇官方版本 NSQ 源码相关的文章，小米信息部技术团队的<a href="https://xiaomi-info.github.io/2019/12/06/nsq-src/" target="_blank" rel="external">走进 NSQ 源码细节</a>，可以先看官方版的实现，也可以先看本文，再和官方版对比一下，加深感受。</p>
+<h1 id="2-有赞版本的NSQ"><a href="#2-有赞版本的NSQ" class="headerlink" title="2.有赞版本的NSQ"></a>2.有赞版本的NSQ</h1><p>&emsp;&emsp;据有赞团队自己的<a href="https://tech.youzan.com/" target="_blank" rel="external">官方博客</a>详细介绍了为什么要重新设计 <code>NSQ</code>，主要有以下几点原因：</p>
+<ul>
+<li>部署不容易；</li>
+<li>异常丢失；</li>
+<li>难以追踪消息状态；</li>
+<li>难以使用的历史消息；</li>
+<li>难以按顺序接收消息；</li>
+<li>难以在线调试。</li>
+</ul>
+<p>&emsp;&emsp;最终，有赞团队给出了如下的设计架构，可以看出他们借鉴了不少 <code>Kafka</code> 的设计思路：</p>
+<p><img src="/images/sx/week8/NSQ-redesigned-arch.png" alt=""></p>
+<h2 id="2-1-源码目录结构"><a href="#2-1-源码目录结构" class="headerlink" title="2.1.源码目录结构"></a>2.1.源码目录结构</h2><p>&emsp;&emsp;从<a href="https://github.com/youzan/nsq" target="_blank" rel="external">有赞版本NSQ</a>Github主页下载源码，可以看到如下的目录结构：</p>
+<p><img src="/images/sx/week8/NSQ目录.png" alt=""></p>
+<p>&emsp;&emsp;从上面的目录可以很清晰的感觉几个关键组件 <code>nsqd</code>、<code>nsqlookupd</code>、<code>nsqadmin</code>，而解决<strong>异常丢失</strong>的关键点，肯定是 <code>nsqd</code>，所以不妨从它如何启动开始看起。</p>
+<p>&emsp;&emsp;<code>apps</code> 实际上是各个程序的入口；<code>consistence</code> 目录应该是有赞为实现可靠的一致性，而进行改造的代码；<code>internal</code> 应该是 <code>nsqd</code> 需要用到的 HTTP 或 TCP 的一些基础封装；<code>Jepsen</code> 则是对分布式测试的支持。而 <code>nsqd</code> 与 <code>nsqdserver</code> 的区别是，前者更加专注于 NSQ 功能的实现，后者则是 HTTP 或 TCP 接入层面的一些预处理。其他目录则基本不是代码文件存放的目录，做其他用途。</p>
+<p>&emsp;&emsp;目录结构是阅读源码后，自行总结 + 猜测得出的大致用途，如有偏差、错误或者遗漏，还请前辈们指出。</p>
+<h2 id="2-2-nsqd的启动"><a href="#2-2-nsqd的启动" class="headerlink" title="2.2.nsqd的启动"></a>2.2.nsqd的启动</h2><p>&emsp;&emsp;用于启动的源码，位于 <code>/apps</code> 目录下，具体到 <code>nsqd</code> 就是位于 <code>/apps/nsqd</code> 目录下的 <code>nsqd.go</code> 文件中。其Main函数如下，<code>NsqdServer</code> 正是封装在 <code>program</code> 结构体中：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">  <span class="keyword">defer</span> glog.Flush()</div><div class="line">  prg := &amp;program&#123;&#125;</div><div class="line">    <span class="keyword">if</span> err := svc.Run(prg, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGINT); err != <span class="literal">nil</span> &#123;</div><div class="line">      log.Panic(err)</div><div class="line">  &#125;</div><div class="line">  log.Println(<span class="string">"app exited."</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>nsqd</code> 的初始化、启动、停止，运用了 <code>go-svc</code> 作为基础组件，据 <code>go-svc</code> 的<a href="https://github.com/judwhite/go-svc" target="_blank" rel="external">Github</a>介绍，它可以与Linux配合使用的Windows Service包装器。而 <code>program</code> 实现了如下的接口：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">type</span> Service <span class="keyword">interface</span> &#123;</div><div class="line">  <span class="comment">// Init is called before the program/service is started and after it's</span></div><div class="line">  <span class="comment">// determined if the program is running as a Windows Service.</span></div><div class="line">  Init(Environment) error</div><div class="line"></div><div class="line">  <span class="comment">// Start is called after Init. This method must be non-blocking.</span></div><div class="line">  Start() error</div><div class="line"></div><div class="line">  <span class="comment">// Stop is called in response to os.Interrupt, os.Kill, or when a</span></div><div class="line">  <span class="comment">// Windows Service is stopped.</span></div><div class="line">  Stop() error</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;Main函数中调用的 <code>Run</code> 方法，正是位于依赖库的 <code>svc\svc_windows.go</code> 中。它将传入的 <code>Service</code> 封装到 <code>windowsService</code> 中，并调用 <code>Init</code> 方法，判断是否以Windows窗口方式运行，然后进行 <code>run</code> 方法，这才是启动的核心：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">Run</span><span class="params">(service Service, sig ...os.Signal)</span> <span class="title">error</span></span> &#123;</div><div class="line">  ...</div><div class="line">  ws := &amp;windowsService&#123;</div><div class="line">    i:             service,</div><div class="line">    isInteractive: interactive,</div><div class="line">    signals:       sig,</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> err = service.Init(ws); err != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="keyword">return</span> err</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">return</span> ws.run()</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>run</code> 方法源码如下，区别两种运行方式。其中，以Windows窗口方式运行时，调用 <code>svcRun</code>，其本质是调用依赖库的 <code>windows\svc\service.go</code> 的 <code>func Run(name string, handler Handler) error</code> 函数。但两者最终的核心都是调用  <code>windowsService</code> 中封装的 <code>Service</code> 的 <code>Start</code> 方法：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ws *windowsService)</span> <span class="title">run</span><span class="params">()</span> <span class="title">error</span></span> &#123;</div><div class="line">  ws.setError(<span class="literal">nil</span>)</div><div class="line">  <span class="keyword">if</span> ws.IsWindowsService() &#123;</div><div class="line">    runErr := svcRun(ws.Name, ws)</div><div class="line">    ...</div><div class="line">    <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">  &#125;</div><div class="line"></div><div class="line">  err := ws.i.Start()</div><div class="line">  ...</div><div class="line">  err = ws.i.Stop()</div><div class="line"></div><div class="line">  <span class="keyword">return</span> err</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;由于如何调用到 <code>Start</code> 方法和 <code>Stop</code> 方法不是本次学习的重点，就不做更加详细的展示了。启动 <code>nsqd</code> 的核心在于 <code>Start</code> 方法，其代码如下。这里提一句，在 <code>NewNsqdServer</code> 函数中，有一行代码很重要 <code>s.ctx.nsqd.SetPubLoop(s.ctx.internalPubLoop)</code>，记住它，后面会再次讲到。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *program)</span> <span class="title">Start</span><span class="params">()</span> <span class="title">error</span></span> &#123;</div><div class="line">  <span class="comment">// 配置文件、命令参数等解析</span></div><div class="line">  ...</div><div class="line">  <span class="comment">// 构造NsqdServer实例</span></div><div class="line">  nsqd, nsqdServer, err := nsqdserver.NewNsqdServer(opts)</div><div class="line">  ...</div><div class="line">  <span class="comment">// 核心方法</span></div><div class="line">  nsqdServer.Main()</div><div class="line">  p.nsqdServer = nsqdServer</div><div class="line">  <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;接下来，看看 <code>Main</code> 方法具体做了什么。其实，<code>Main</code> 方法就是监控TCP、HTTP、HTTPS的指定端口，完成 <code>nsqd</code> 的启动。<code>nsqd</code> 主要在2个TCP端口监听，一个给客户端，另一个是 HTTP API。同时，它也能在第三个端口监听 HTTPS。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *NsqdServer)</span> <span class="title">Main</span><span class="params">()</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">if</span> s.ctx.nsqdCoord != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="comment">// 检查集群元数据，并加载Disk数据等操作</span></div><div class="line">    err := s.ctx.nsqdCoord.Start()</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">  tcpListener, err := net.Listen(<span class="string">"tcp"</span>, opts.TCPAddress)</div><div class="line">  ...</div><div class="line">  s.waitGroup.Wrap(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">    protocol.TCPServer(s.tcpListener, tcpServer)</div><div class="line">    ...</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> s.ctx.GetTlsConfig() != <span class="literal">nil</span> &amp;&amp; opts.HTTPSAddress != <span class="string">""</span> &#123;</div><div class="line">    ...</div><div class="line">    httpsServer := newHTTPServer(s.ctx, <span class="literal">true</span>, <span class="literal">true</span>)</div><div class="line">    s.waitGroup.Wrap(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">      http_api.Serve(s.httpsListener, httpsServer, <span class="string">"HTTPS"</span>, opts.Logger)</div><div class="line">    &#125;)</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">  httpServer := newHTTPServer(s.ctx, <span class="literal">false</span>, opts.TLSRequired == TLSRequired)</div><div class="line">  s.waitGroup.Wrap(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">    http_api.Serve(s.httpListener, httpServer, <span class="string">"HTTP"</span>, opts.Logger)</div><div class="line">  &#125;)</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-2-1-TCP监听"><a href="#2-2-1-TCP监听" class="headerlink" title="2.2.1.TCP监听"></a>2.2.1.TCP监听</h3><p>&emsp;&emsp;<code>TCPServer</code> 函数跟之前分析过的很多服务启动类似，都是在一个循环里不断 <code>Accept</code> 接受连接，并调用 <code>tcpServer</code> 实现的 <code>Handle</code> 接口进行处理。源码位于 <code>internal\protocol\tcp_server.go</code> 文件中，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">TCPServer</span><span class="params">(listener net.Listener, handler TCPHandler)</span></span> &#123;</div><div class="line">  <span class="keyword">for</span> &#123;</div><div class="line">    clientConn, err := listener.Accept()</div><div class="line">    ...</div><div class="line">    <span class="keyword">go</span> handler.Handle(clientConn)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-2-2-HTTP监听"><a href="#2-2-2-HTTP监听" class="headerlink" title="2.2.2.HTTP监听"></a>2.2.2.HTTP监听</h3><p>&emsp;&emsp;<code>newHTTPServer</code> 的流程也类似，先注册URL和对应的回调函数。源码位于 <code>nsqdserver\http.go</code>，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">newHTTPServer</span><span class="params">(ctx *context, tlsEnabled <span class="keyword">bool</span>, tlsRequired <span class="keyword">bool</span>)</span> *<span class="title">httpServer</span></span> &#123;</div><div class="line">  ...</div><div class="line">  router := httprouter.New()</div><div class="line">  ...</div><div class="line">  s := &amp;httpServer&#123;</div><div class="line">    ctx:         ctx,</div><div class="line">    tlsEnabled:  tlsEnabled,</div><div class="line">    tlsRequired: tlsRequired,</div><div class="line">    router:      router,</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// 注册URL和对应的回调</span></div><div class="line">  router.Handle(<span class="string">"GET"</span>, <span class="string">"/ping"</span>, http_api.Decorate(s.pingHandler, log, http_api.PlainText))</div><div class="line">  ...</div><div class="line">  <span class="keyword">return</span> s</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;然后调用 <code>Serve</code> 函数，创建 Server 对象，并调用其 Serve 方法，完成监听并接受请求。源码位于 <code>internal\http_api\http_server.go</code>，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">Serve</span><span class="params">(listener net.Listener, handler http.Handler, proto <span class="keyword">string</span>, l levellogger.Logger)</span></span> &#123;</div><div class="line">  ...</div><div class="line">  server := &amp;http.Server&#123;</div><div class="line">    Handler:      handler,</div><div class="line">    ErrorLog:     log.New(logWriter&#123;l&#125;, <span class="string">""</span>, <span class="number">0</span>),</div><div class="line">    ReadTimeout:  <span class="number">10</span> * time.Second,</div><div class="line">    WriteTimeout: <span class="number">60</span> * time.Second,</div><div class="line">  &#125;</div><div class="line">  err := server.Serve(listener)</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;Server结构体的 <code>Serve</code> 方法是 Golang 标准库的代码，也是在一个循环里不断 Accept 客户端的请求。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">Serve</span><span class="params">(l net.Listener)</span> <span class="title">error</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">for</span> &#123;</div><div class="line">    rw, err := l.Accept()</div><div class="line">    ...</div><div class="line">    c := srv.newConn(rw)</div><div class="line">    c.setState(c.rwc, StateNew) <span class="comment">// before Serve can return</span></div><div class="line">    <span class="keyword">go</span> c.serve(connCtx)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="2-3-提交消息到Topic"><a href="#2-3-提交消息到Topic" class="headerlink" title="2.3.提交消息到Topic"></a>2.3.提交消息到Topic</h2><p>&emsp;&emsp;由于 NSQ 支持 HTTP 提交消息，所以选择从 HTTP 的 URL 为起点，寻找提交消息的具体业务逻辑，应该是一个更直观、更有效的方式。这里参考官方给出的 <a href="https://nsq.io/components/nsqd.html" target="_blank" rel="external">HTTP API 文档</a>，可以看到提交消息到Topic对应的 URL 是 <code>/pub</code>。相应的可以在 <code>nsqdserver\http.go</code> 的 <code>newHTTPServer</code> 函数中找到 URL 对应的回调函数 <code>doPUB</code>。</p>
+<p>&emsp;&emsp;同时，有赞版本的 NSQ 新增了 <code>/pub_ext</code> 和 <code>/pubtrace</code>，以上三者本质上都是调用了 <code>internalPUB</code> 方法，应该是用以支持有赞团队提到的 <code>消息轨迹查询系统</code>。</p>
+<h3 id="2-3-1-消费channel的数据同步处理"><a href="#2-3-1-消费channel的数据同步处理" class="headerlink" title="2.3.1.消费channel的数据同步处理"></a>2.3.1.消费channel的数据同步处理</h3><p>&emsp;&emsp;官方版本之所以要从topic复制所有消息到每个channel，是因为使用的是golang里面的chan这种机制，只有复制才能保证每个消费组的数据互相独立。</p>
+<p>&emsp;&emsp;有赞版本则是将数据先进行落盘，所以不再需要做这种数据复制的操作，只需要记录每个channel已经同步的数据位移和每个channel的消费位移即可。这样所有的channel引用的是同一份topic磁盘数据，每个channel维护自己的独立位移信息即可。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>节省了数据复制的操作，提高了性能，也保证了各个channel之间的独立性。</li>
+<li>从流程上看，有赞版本把topic的写入和读取流程分离开了，topic本身只负责写入数据，channel仅负责读取数据。</li>
+</ul>
+<p><img src="/images/sx/week8/NSQ-落盘优化.png" alt=""></p>
+<p>&emsp;&emsp;官方版 NSQ 的设计目标之一就是要限定保持在内存中的消息数。它通过 <code>DiskQueue</code> 透明地将溢出的消息写入到磁盘上。所以有上图的 full 之后再落盘数据。接下来，先以单机的提交消息到Topic为例，看看代码层面如何实现落盘的。</p>
+<h3 id="2-3-2-internalPUB方法"><a href="#2-3-2-internalPUB方法" class="headerlink" title="2.3.2.internalPUB方法"></a>2.3.2.internalPUB方法</h3><p>&emsp;&emsp;先来看看 <code>internalPUB</code> 方法具体做了什么。该方法将 req.Body 的内容拷贝到缓存中，主节点按照是否为异步提交的策略，选择不同的提交方式，并根据需要跟踪相关信息；从节点则不执行这部分逻辑。源码依旧位于 <code>nsqdserver\http.go</code>，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *httpServer)</span> <span class="title">internalPUB</span><span class="params">(w http.ResponseWriter, req *http.Request, ps httprouter.Params, enableTrace <span class="keyword">bool</span>, pubExt <span class="keyword">bool</span>)</span> <span class="params">(<span class="keyword">interface</span>&#123;&#125;, error)</span></span> &#123;</div><div class="line">  <span class="comment">// 消息长度校验</span></div><div class="line">  ...</div><div class="line">  <span class="comment">// 解析查询参数，通过Topic Name和分区查询到具体的Topic实例</span></div><div class="line">  params, topic, err := s.getExistingTopicFromQuery(req)</div><div class="line">  ...</div><div class="line">  <span class="comment">// 内存拷贝</span></div><div class="line">  n, err := io.CopyN(b, io.LimitReader(req.Body, readMax), <span class="keyword">int64</span>(req.ContentLength))</div><div class="line">  body := b.Bytes()[:req.ContentLength]</div><div class="line">  ...</div><div class="line"></div><div class="line">  <span class="keyword">if</span> s.ctx.checkForMasterWrite(topic.GetTopicName(), topic.GetTopicPart()) &#123;</div><div class="line">    <span class="comment">// 主节点</span></div><div class="line">    <span class="comment">// 解析traceId</span></div><div class="line">    ...</div><div class="line">    <span class="comment">//check if request is PUB_WITH_EXT</span></div><div class="line">    ...</div><div class="line">    <span class="keyword">if</span> asyncAction &#123;</div><div class="line">      <span class="comment">// 异步批量提交消息</span></div><div class="line">      err = internalPubAsync(<span class="literal">nil</span>, body, topic, extContent)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// 同步提交单条消息</span></div><div class="line">      id, offset, rawSize, _, err = s.ctx.PutMessage(topic, body, extContent, traceID)</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">    <span class="comment">// 根据traceId记录相关信息</span></div><div class="line">    ...</div><div class="line">    <span class="keyword">if</span> needTraceRsp &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">struct</span> &#123;</div><div class="line">        Status      <span class="keyword">string</span> <span class="string">`json:"status"`</span></div><div class="line">        ID          <span class="keyword">uint64</span> <span class="string">`json:"id"`</span></div><div class="line">        TraceID     <span class="keyword">string</span> <span class="string">`json:"trace_id"`</span></div><div class="line">        QueueOffset <span class="keyword">uint64</span> <span class="string">`json:"queue_offset"`</span></div><div class="line">        DataRawSize <span class="keyword">uint32</span> <span class="string">`json:"rawsize"`</span></div><div class="line">        &#125;&#123;<span class="string">"OK"</span>, <span class="keyword">uint64</span>(id), traceIDStr, <span class="keyword">uint64</span>(offset), <span class="keyword">uint32</span>(rawSize)&#125;, <span class="literal">nil</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="keyword">return</span> <span class="string">"OK"</span>, <span class="literal">nil</span></div><div class="line">    &#125;</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="comment">// 从节点，不写消息</span></div><div class="line">    ...</div><div class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, http_api.Err&#123;<span class="number">400</span>, FailedOnNotLeader&#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-3-3-internalPubAsync函数"><a href="#2-3-3-internalPubAsync函数" class="headerlink" title="2.3.3.internalPubAsync函数"></a>2.3.3.internalPubAsync函数</h3><p>&emsp;&emsp;这就来到了有赞团队在<a href="https://tech.youzan.com/how-we-redesigned-the-nsq-the-details-of-the-new-arch/" target="_blank" rel="external">How we redesigned the NSQ - NSQ重塑之详细设计</a>一文中提到的关键函数——<code>internalPubAsync</code> 函数，该函数位于 <code>nsqdserver\protocol_v2.go</code>。</p>
+<p>&emsp;&emsp;在服务端引入常见的Group commit组提交方式，将多个消息一次性提交，减少IO操作。这样不管是因为刷盘还是因为数据副本同步的延迟，都会把这段时间的积累的多个消息作为一组一次性写入，这样就大大减少了需要操作的写入次数。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 客户端pub的数据写入临时chan后, 在chan上面等待结果异步返回</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">internalPubAsync</span><span class="params">(clientTimer *time.Timer, msgBody []<span class="keyword">byte</span>, topic *nsqd.Topic, extContent ext.IExtContent)</span> <span class="title">error</span></span> &#123;</div><div class="line">  <span class="keyword">if</span> topic.Exiting() &#123;</div><div class="line">    <span class="keyword">return</span> nsqd.ErrExiting</div><div class="line">  &#125;</div><div class="line">  info := &amp;nsqd.PubInfo&#123;</div><div class="line">    Done:       <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</div><div class="line">    MsgBody:    msgBody,</div><div class="line">    ExtContent: extContent,</div><div class="line">    StartPub:   time.Now(),</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">select</span> &#123;</div><div class="line">  <span class="keyword">case</span> topic.GetWaitChan() &lt;- info:</div><div class="line">  <span class="keyword">default</span>:</div><div class="line">    <span class="keyword">if</span> clientTimer == <span class="literal">nil</span> &#123;</div><div class="line">      clientTimer = time.NewTimer(pubWaitTimeout)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      clientTimer.Reset(pubWaitTimeout)</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">select</span> &#123;</div><div class="line">    <span class="keyword">case</span> topic.GetWaitChan() &lt;- info:</div><div class="line">    <span class="keyword">case</span> &lt;-topic.QuitChan():</div><div class="line">      nsqd.NsqLogger().Infof(<span class="string">"topic %v put messages failed at exiting"</span>, topic.GetFullName())</div><div class="line">      <span class="keyword">return</span> nsqd.ErrExiting</div><div class="line">    <span class="keyword">case</span> &lt;-clientTimer.C:</div><div class="line">      nsqd.NsqLogger().Infof(<span class="string">"topic %v put messages timeout "</span>, topic.GetFullName())</div><div class="line">      topic.IncrPubFailed()</div><div class="line">      incrServerPubFailed()</div><div class="line">      <span class="keyword">return</span> ErrPubToWaitTimeout</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  &lt;-info.Done</div><div class="line">  <span class="keyword">return</span> info.Err</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="2-3-4-internalPubLoop方法"><a href="#2-3-4-internalPubLoop方法" class="headerlink" title="2.3.4.internalPubLoop方法"></a>2.3.4.internalPubLoop方法</h3><p>&emsp;&emsp;通过 <code>topic.GetWaitChan()</code>，可以找到 <code>PubInfo</code> 结构体被发送到了哪里。可以看到，数据被发送到了 <code>internalPubLoop</code> 方法。</p>
+<p>&emsp;&emsp;组提交循环，在chan上面等待异步提交写入请求，并尝试一次提交所有等待中的请求。请求完成后，通过关闭对应请求的chan来通知客户端结果。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *context)</span> <span class="title">internalPubLoop</span><span class="params">(topic *nsqd.Topic)</span></span> &#123;</div><div class="line">  messages := <span class="built_in">make</span>([]*nsqd.Message, <span class="number">0</span>, <span class="number">100</span>)</div><div class="line">  pubInfoList := <span class="built_in">make</span>([]*nsqd.PubInfo, <span class="number">0</span>, <span class="number">100</span>)</div><div class="line">  ...</div><div class="line">  <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">    <span class="comment">// 循环退出后，剩余未落盘的消息，返回相应的错误信息</span></div><div class="line">    done := <span class="literal">false</span></div><div class="line">    <span class="keyword">for</span> !done &#123;</div><div class="line">      <span class="keyword">select</span> &#123;</div><div class="line">      <span class="keyword">case</span> info := &lt;-topic.GetWaitChan():</div><div class="line">        pubInfoList = <span class="built_in">append</span>(pubInfoList, info)</div><div class="line">      <span class="keyword">default</span>:</div><div class="line">        done = <span class="literal">true</span></div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    nsqd.NsqLogger().Logf(<span class="string">"quit pub loop for topic: %v, left: %v "</span>, topic.GetFullName(), <span class="built_in">len</span>(pubInfoList))</div><div class="line">    <span class="keyword">for</span> _, info := <span class="keyword">range</span> pubInfoList &#123;</div><div class="line">      info.Err = nsqd.ErrExiting</div><div class="line">      <span class="built_in">close</span>(info.Done)</div><div class="line">    &#125;</div><div class="line">  &#125;()</div><div class="line">  quitChan := topic.QuitChan()</div><div class="line">  infoChan := topic.GetWaitChan()</div><div class="line">  <span class="keyword">for</span> &#123;</div><div class="line">    <span class="keyword">select</span> &#123;</div><div class="line">    <span class="keyword">case</span> &lt;-quitChan:</div><div class="line">      <span class="keyword">return</span></div><div class="line">    <span class="keyword">case</span> info := &lt;-infoChan:</div><div class="line">      <span class="comment">// 参数校验</span></div><div class="line">      ...</div><div class="line">      <span class="keyword">if</span> !topic.IsExt() &#123;</div><div class="line">        messages = <span class="built_in">append</span>(messages, nsqd.NewMessage(<span class="number">0</span>, info.MsgBody))</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        messages = <span class="built_in">append</span>(messages, nsqd.NewMessageWithExt(<span class="number">0</span>, info.MsgBody, info.ExtContent.ExtVersion(), info.ExtContent.GetBytes()))</div><div class="line">      &#125;</div><div class="line">      pubInfoList = <span class="built_in">append</span>(pubInfoList, info)</div><div class="line">    <span class="keyword">default</span>:</div><div class="line">      <span class="keyword">if</span> <span class="built_in">len</span>(pubInfoList) == <span class="number">0</span> &#123;</div><div class="line">        <span class="comment">// 这段代码几乎与case info := &lt;-infoChan相同</span></div><div class="line">        ...</div><div class="line">        <span class="keyword">continue</span></div><div class="line">      &#125;</div><div class="line">      <span class="keyword">var</span> retErr error</div><div class="line">      <span class="keyword">if</span> c.checkForMasterWrite(topicName, partition) &#123;</div><div class="line">        s := time.Now()</div><div class="line">        _, _, _, err := c.PutMessages(topic, messages)</div><div class="line">        <span class="comment">// 错误处理、统计耗时等</span></div><div class="line">        ...</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// 从节点不进行落盘操作</span></div><div class="line">        ...</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 错误处理</span></div><div class="line">      ...</div><div class="line">      <span class="comment">// 请求完成后, 通过关闭对应请求的chan来通知客户端结果</span></div><div class="line">      <span class="keyword">for</span> _, info := <span class="keyword">range</span> pubInfoList &#123;</div><div class="line">        info.Err = retErr</div><div class="line">        <span class="built_in">close</span>(info.Done)</div><div class="line">      &#125;</div><div class="line">      pubInfoList = pubInfoList[:<span class="number">0</span>]</div><div class="line">      messages = messages[:<span class="number">0</span>]</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;上述方法是如何运行起来的，可以参考 <code>nsqd\topic.go</code> 文件，是在New出一个新的Topic时，将该方法作为 Topic 结构体的成员变量，并起一个协程调用该方法。</p>
+<p>&emsp;&emsp;可以看到，上述方法只是接受数据，再存到数组中，并统一进行落盘处理，而具体的落盘方法是 <code>PutMessages</code> 方法。通过 Goland 的代码转跳，可以很容易地找到最终的刷盘代码，是位于 <code>nsqd\diskqueue_writer.go</code> 的 <code>func (d *diskQueueWriter) writeOne(...) (...)</code>。可以看到文件名，基本上跟图片上的 Topic Disk Queue 对应上了。</p>
+<h2 id="2-4-支持数据副本和高可用"><a href="#2-4-支持数据副本和高可用" class="headerlink" title="2.4.支持数据副本和高可用"></a>2.4.支持数据副本和高可用</h2><p>&emsp;&emsp;这部分做了类似Kafka的设计，将每个topic的数据节点副本元信息写入etcd，然后通过etcd选举出每个topic的leader节点。选举的topic的leader节点负责自己topic的数据副本同步，其他follower节点从leader节点同步topic数据。</p>
+<h3 id="2-4-1-元数据存储"><a href="#2-4-1-元数据存储" class="headerlink" title="2.4.1.元数据存储"></a>2.4.1.元数据存储</h3><p>&emsp;&emsp;一些少量的元数据存储在etcd，保证整个集群的元数据的一致性。</p>
+<p>&emsp;&emsp;具体包括每个topic的配置信息，副本节点的分布，选举出来的leader节点信息，nsqd数据节点的配置信息以及nsqlookupd数据查询节点的配置信息。元数据树结构图如下：</p>
+<p><img src="/images/sx/week8/NSQ-元数据结构图.jpg" alt=""></p>
+<h3 id="2-4-2-Leader选举"><a href="#2-4-2-Leader选举" class="headerlink" title="2.4.2.Leader选举"></a>2.4.2.Leader选举</h3><p>&emsp;&emsp;改造后的nsq架构，每个topic需要一个leader节点负责处理读写请求和数据同步。为了保证每个节点的负载趋于均衡，我们通过nsqlookupd来选择合适的topic的leader节点，并通知给所有副本进行leader确认。leader节点会尝试从etcd获取topic对应的leader锁确认leader有效。</p>
+<p>&emsp;&emsp;当某个节点失效时，会触发etcd的watch事件，从而触发nsqlookupd重新选择其他存活的节点作为topic的新leader，完成leader的快速切换。客户端如果此时正在写入老的leader也会触发失败重试，并获取最新的leader节点，完成自动HA。选举具体流程如下：</p>
+<p><img src="/images/sx/week8/NSQ-leader选举.png" alt=""></p>
+<h3 id="2-4-3-从代码角度进行大致梳理"><a href="#2-4-3-从代码角度进行大致梳理" class="headerlink" title="2.4.3.从代码角度进行大致梳理"></a>2.4.3.从代码角度进行大致梳理</h3><p>&emsp;&emsp;在 <code>nsqlookupd</code> 启动的时候，会启动一个名为 <code>NsqLookupCoordinator</code> 的实例，由它进行 Leader 节点的选举工作。可以看到它的 <code>Start</code> 方法在 <code>NSQLookupd</code> 的 <code>Main</code> 方法中被调用。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *NSQLookupd)</span> <span class="title">Main</span><span class="params">()</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">if</span> l.opts.RPCPort != <span class="string">""</span> &#123;</div><div class="line">    ...</div><div class="line">    err = l.coordinator.Start()</div><div class="line">    ...</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">  httpListener, err := net.Listen(<span class="string">"tcp"</span>, l.opts.HTTPAddress)</div><div class="line">  ...</div><div class="line">  httpServer := newHTTPServer(ctx)</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;下述方法的源码均在 <code>consistence\nsqlookup_coordinator.go</code> 中，在 <code>NsqLookupCoordinator</code> 的 <code>Start</code> 方法中，启动一个协程去处理 Leader 选举的工作。代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(nlcoord *NsqLookupCoordinator)</span> <span class="title">Start</span><span class="params">()</span> <span class="title">error</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">go</span> nlcoord.handleLeadership()</div><div class="line">  ...</div><div class="line">  <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;在 <code>NsqLookupCoordinator</code> 的 <code>handleLeadership</code> 方法中，主要就是循环监听 Leader 节点的变化，特别是在 Leader 发生改变时，发出 Leader 改变的通知。代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(nlcoord *NsqLookupCoordinator)</span> <span class="title">handleLeadership</span><span class="params">()</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">for</span> &#123;</div><div class="line">    <span class="keyword">select</span> &#123;</div><div class="line">    <span class="keyword">case</span> l, ok := &lt;-lookupdLeaderChan:</div><div class="line">      <span class="keyword">if</span> !ok &#123;</div><div class="line">        coordLog.Warningf(<span class="string">"leader chan closed."</span>)</div><div class="line">        <span class="keyword">return</span></div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> l == <span class="literal">nil</span> &#123;</div><div class="line">        coordLog.Warningln(<span class="string">"leader is lost."</span>)</div><div class="line">        <span class="keyword">continue</span></div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> l.GetID() != nlcoord.leaderNode.GetID() ||</div><div class="line">      l.Epoch != nlcoord.leaderNode.Epoch &#123;</div><div class="line">        nlcoord.leaderNode = *l</div><div class="line">        ...</div><div class="line">        nlcoord.notifyLeaderChanged(nlcoord.nsqdMonitorChan)</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> nlcoord.leaderNode.GetID() == <span class="string">""</span> &#123;</div><div class="line">        coordLog.Warningln(<span class="string">"leader is missing."</span>)</div><div class="line">      &#125;</div><div class="line">    <span class="keyword">case</span> &lt;-ticker.C:</div><div class="line">      <span class="comment">// reload topics to cache, used for query from client</span></div><div class="line">      _, err := nlcoord.leadership.ScanTopics()</div><div class="line">      ...</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;可以看到上述代码中，调用了 <code>notifyLeaderChanged</code> 方法，其中又调用了 <code>checkTopics</code>，实际上它也是调用 <code>doCheckTopics</code> 进行处理。而 <code>doCheckTopics</code> 方法中，有一些重要的东西。通过源码本身的注释，可以看到其中有一句，如果 Leader 宕机了，就需要先选举一个新的 Leader ，这里应该就是选举的算法了。而根据之前的选举具体流程图来看，该方法应该是主干部分。其源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(nlcoord *NsqLookupCoordinator)</span> <span class="title">doCheckTopics</span><span class="params">(monitorChan <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, failedInfo *TopicNameInfo,</span></span></div><div class="line"><span class="function"><span class="params">	waitingMigrateTopic <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">map</span>[<span class="keyword">int</span>]time.Time, lostLeaderSessions <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">bool</span>, fullCheck <span class="keyword">bool</span>)</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">for</span> _, t := <span class="keyword">range</span> topics &#123;</div><div class="line">    ...</div><div class="line">    <span class="comment">// move the failed node from ISR to catchup</span></div><div class="line">    coordErr := nlcoord.handleRemoveFailedISRNodes(failedNodes, &amp;topicInfo)</div><div class="line">    ...</div><div class="line">    <span class="comment">// if leader of topic is down, we need elect new leader first</span></div><div class="line">    <span class="keyword">if</span> _, ok := currentNodes[t.Leader]; !ok &#123;</div><div class="line">      ...</div><div class="line">      coordErr := nlcoord.handleTopicLeaderElection(&amp;topicInfo, aliveNodes, aliveEpoch, <span class="literal">false</span>)</div><div class="line">      ...</div><div class="line">      <span class="keyword">continue</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// check topic leader session key.</span></div><div class="line">      ...</div><div class="line">      <span class="keyword">for</span> retry &lt; <span class="number">3</span> &#123;</div><div class="line">        retry++</div><div class="line">        leaderSession, err = nlcoord.leadership.GetTopicLeaderSession(t.Name, t.Partition)</div><div class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">          ...</div><div class="line">          <span class="comment">// notify the nsqd node to acquire the leader session.</span></div><div class="line">          nlcoord.notifyISRTopicMetaInfo(&amp;topicInfo)</div><div class="line">          nlcoord.notifyAcquireTopicLeader(&amp;topicInfo)</div><div class="line">          ...</div><div class="line">          <span class="keyword">continue</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">          <span class="keyword">break</span></div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">      ...</div><div class="line">      <span class="keyword">if</span> leaderSession.LeaderNode == <span class="literal">nil</span> || leaderSession.Session == <span class="string">""</span> &#123;</div><div class="line">        ...</div><div class="line">        nlcoord.notifyISRTopicMetaInfo(&amp;topicInfo)</div><div class="line">        nlcoord.notifyAcquireTopicLeader(&amp;topicInfo)</div><div class="line">        <span class="keyword">continue</span></div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> leaderSession.LeaderNode.ID != t.Leader &#123;</div><div class="line">        ...</div><div class="line">        nlcoord.notifyISRTopicMetaInfo(&amp;topicInfo)</div><div class="line">        nlcoord.notifyAcquireTopicLeader(&amp;topicInfo)</div><div class="line">        <span class="keyword">continue</span></div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>handleTopicLeaderElection</code> 方法的源码就不在这里列出，继续按照流程图进行梳理。可以看到上面的代码里调用了 <code>notifyAcquireTopicLeader</code> 方法，其中以回调的方式，调用 <code>sendAcquireTopicLeaderToNsqd</code>，最终调用到 <code>NsqdRpcClient</code> 的 <code>NotifyAcquireTopicLeader</code> 方法完成通知 Leader 节点获取 Leader 锁。<code>NsqdRpcClient</code> 以 RPC 的方式，调用 Leader 节点的 <code>NotifyAcquireTopicLeader</code>方法。<code>NotifyAcquireTopicLeader</code> 源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *NsqdCoordRpcServer)</span> <span class="title">NotifyAcquireTopicLeader</span><span class="params">(rpcTopicReq *RpcAcquireTopicLeaderReq)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">if</span> err := self.checkLookupForWrite(rpcTopicReq.LookupdEpoch); err != <span class="literal">nil</span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">  topicCoord, err := self.nsqdCoord.getTopicCoord(rpcTopicReq.TopicName, rpcTopicReq.TopicPartition)</div><div class="line">  ...</div><div class="line">  tcData := topicCoord.GetData()</div><div class="line">  ...</div><div class="line">  err = self.nsqdCoord.notifyAcquireTopicLeader(tcData)</div><div class="line">  ...</div><div class="line">  <span class="keyword">return</span> &amp;ret</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;可以看到上述代码是根据 TopicName 和 TopicPartition 查询到 <code>NsqdCoordinator</code>，实际上是调用它的 <code>acquireTopicLeader</code> 方法去获取 Leader 锁。源码位于 <code>consistence\nsqd_coordinator.go</code>，如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// New leader should acquire the leader lock and check if success to avoid multi leader session</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ncoord *NsqdCoordinator)</span> <span class="title">acquireTopicLeader</span><span class="params">(topicInfo *TopicPartitionMetaInfo)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">  ...</div><div class="line">  err := ncoord.leadership.AcquireTopicLeader(topicInfo.Name, topicInfo.Partition, &amp;ncoord.myNode, topicInfo.Epoch)</div><div class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">    coordLog.Infof(<span class="string">"failed to acquire leader for topic(%v): %v"</span>, topicInfo.Name, err)</div><div class="line">    <span class="keyword">return</span> &amp;CoordErr&#123;err.Error(), RpcNoErr, CoordElectionErr&#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  coordLog.Infof(<span class="string">"acquiring leader for topic(%v) success"</span>, topicInfo.Name)</div><div class="line">  <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>AcquireTopicLeader</code> 的源码位于 <code>consistence\nsqd_node_etcd.go</code>，尝试从 ETCD 中读取 Leader 锁，如果不存在，则尝试创建。如果创建失败，就表示获锁失败；如果创建成功，则表示成为 Leader 节点。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(nem *NsqdEtcdMgr)</span> <span class="title">AcquireTopicLeader</span><span class="params">(topic <span class="keyword">string</span>, partition <span class="keyword">int</span>, nodeData *NsqdNodeInfo, epoch EpochType)</span> <span class="title">error</span></span> &#123;</div><div class="line">  topicLeaderSession := &amp;TopicLeaderSession&#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  valueB, err := json.Marshal(topicLeaderSession)</div><div class="line">  ...</div><div class="line">  topicKey := nem.createTopicLeaderPath(topic, partition)</div><div class="line">  rsp, err := nem.client.Get(topicKey, <span class="literal">false</span>, <span class="literal">false</span>)</div><div class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">    <span class="keyword">if</span> client.IsKeyNotFound(err) &#123;</div><div class="line">      <span class="comment">// 无锁，则尝试创建</span></div><div class="line">      coordLog.Infof(<span class="string">"try to acquire topic leader session [%s]"</span>, topicKey)</div><div class="line">      rsp, err = nem.client.Create(topicKey, <span class="keyword">string</span>(valueB), <span class="number">0</span>)</div><div class="line">      <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</div><div class="line">        <span class="comment">// 创建失败</span></div><div class="line">        coordLog.Infof(<span class="string">"acquire topic leader session [%s] failed: %v"</span>, topicKey, err)</div><div class="line">        <span class="keyword">return</span> err</div><div class="line">      &#125;</div><div class="line">      <span class="comment">// 创建成功，成为Leader</span></div><div class="line">      coordLog.Infof(<span class="string">"acquire topic leader [%s] success: %v"</span>, topicKey, <span class="keyword">string</span>(valueB))</div><div class="line">      <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// 异常</span></div><div class="line">      ...</div><div class="line">      <span class="keyword">return</span> err</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> rsp.Node.Value == <span class="keyword">string</span>(valueB) &#123;</div><div class="line">    <span class="comment">// 已经成为Leader</span></div><div class="line">    coordLog.Infof(<span class="string">"get topic leader with the same [%s] "</span>, topicKey)</div><div class="line">    <span class="keyword">return</span> <span class="literal">nil</span></div><div class="line">  &#125;</div><div class="line">  <span class="comment">// 已经有Leader节点（非当前节点）</span></div><div class="line">  coordLog.Infof(<span class="string">"get topic leader [%s] failed, lock exist value[%s]"</span>, topicKey, rsp.Node.Value)</div><div class="line">  <span class="keyword">return</span> ErrKeyAlreadyExist</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="2-5-数据副本同步和动态ISR"><a href="#2-5-数据副本同步和动态ISR" class="headerlink" title="2.5.数据副本同步和动态ISR"></a>2.5.数据副本同步和动态ISR</h2><p>&emsp;&emsp;每个topic选举出来的leader节点负责同步数据到所有副本。为了支持副本节点的动态变化，参考了Kafka的ISR(In synced replica)的设计。和Kafka不同的是，有赞版本用push模式，不是pull的模式，来保证数据的同步复制，避免数据同步不一致。</p>
+<p>&emsp;&emsp;因此，数据写入首先由leader节点发起，并且同步到所有ISR副本节点成功后，才返回给客户端。如果同步ISR节点失败，则尝试动态调整ISR并重试直到成功为止。重试的过程中会检查leader的有效性，以及是否重复提交等条件。写入流程和ISR的动态调整流程如图所示：</p>
+<p><img src="/images/sx/week8/NSQ-数据副本同步.png" alt=""></p>
+<h3 id="2-5-1-从代码角度进行大致梳理"><a href="#2-5-1-从代码角度进行大致梳理" class="headerlink" title="2.5.1.从代码角度进行大致梳理"></a>2.5.1.从代码角度进行大致梳理</h3><p>&emsp;&emsp;从之前对 <code>internalPUB</code> 的分析可以看到，同步消息是使用 <code>PutMessage</code> 提交的；而从对 <code>internalPubLoop</code> 的分析可以看到，异步消息是使用 <code>PutMessages</code> 提交的。</p>
+<p>&emsp;&emsp;两段代码都位于 <code>nsqdserver\context.go</code> 中，以后者为例，可以看到单机使用 <code>Topic</code> 的 <code>PutMessages</code>；而集群模式时，则使用 <code>NsqdCoordinator</code> 的 <code>PutMessagesToCluster</code> 方法。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *context)</span> <span class="title">PutMessages</span><span class="params">(topic *nsqd.Topic, msgs []*nsqd.Message)</span> <span class="params">(nsqd.MessageID, nsqd.BackendOffset, <span class="keyword">int32</span>, error)</span></span> &#123;</div><div class="line">  <span class="keyword">if</span> c.nsqdCoord == <span class="literal">nil</span> &#123;</div><div class="line">    id, offset, rawSize, _, _, err := topic.PutMessages(msgs)</div><div class="line">    <span class="keyword">return</span> id, offset, rawSize, err</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> c.nsqdCoord.PutMessagesToCluster(topic, msgs)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>NsqdCoordinator</code> 的 <code>PutMessagesToCluster</code> 方法位于 <code>consistence\nsqd_coordinator_cluster_write.go</code> 文件中，可以看到其中定义了多个回调方法，例如 <code>doLocalWrite</code>、<code>doLocalExit</code>、<code>doLocalCommit</code>、<code>doLocalRollback</code>、<code>doRefresh</code>、<code>doSlaveSync</code>、<code>handleSyncResult</code>，基本都可以在上图中找到一个对应的步骤。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ncoord *NsqdCoordinator)</span> <span class="title">PutMessagesToCluster</span><span class="params">(topic *nsqd.Topic,</span></span></div><div class="line"><span class="function"><span class="params">	msgs []*nsqd.Message)</span> <span class="params">(nsqd.MessageID, nsqd.BackendOffset, <span class="keyword">int32</span>, error)</span></span> &#123;</div><div class="line">  ...</div><div class="line">  doLocalWrite := <span class="function"><span class="keyword">func</span><span class="params">(d *coordData)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  doLocalExit := <span class="function"><span class="keyword">func</span><span class="params">(err *CoordErr)</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  doLocalCommit := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  doLocalRollback := <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  doRefresh := <span class="function"><span class="keyword">func</span><span class="params">(d *coordData)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  doSlaveSync := <span class="function"><span class="keyword">func</span><span class="params">(c *NsqdRpcClient, nodeID <span class="keyword">string</span>, tcData *coordData)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">    <span class="keyword">if</span> isTestSlaveTimeout() &#123;</div><div class="line">      <span class="keyword">return</span> NewCoordErr(<span class="string">"timeout test for slave sync"</span>, CoordNetErr)</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// should retry if failed, and the slave should keep the last success write to avoid the duplicated</span></div><div class="line">    putErr := c.PutMessages(&amp;tcData.topicLeaderSession, &amp;tcData.topicInfo, commitLog, msgs)</div><div class="line">    ...</div><div class="line">    <span class="keyword">return</span> putErr</div><div class="line">  &#125;</div><div class="line">  handleSyncResult := <span class="function"><span class="keyword">func</span><span class="params">(successNum <span class="keyword">int</span>, tcData *coordData)</span> <span class="title">bool</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// 以上为定义回调，这里是执行具体的逻辑</span></div><div class="line">  clusterErr := ncoord.doSyncOpToCluster(<span class="literal">true</span>, coord, doLocalWrite, doLocalExit, doLocalCommit, doLocalRollback, doRefresh, doSlaveSync, handleSyncResult)</div><div class="line">  ...</div><div class="line">  <span class="keyword">return</span> nsqd.MessageID(commitLog.LogID), nsqd.BackendOffset(commitLog.MsgOffset), commitLog.MsgSize, err</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;<code>doSyncOpToCluster</code> 方法同样位于 <code>consistence\nsqd_coordinator_cluster_write.go</code> 文件中，由于代码比较长，这里就不列出了，其中的业务逻辑跟上图基本是一致的。</p>
+<p>&emsp;&emsp;接下来具体看看主从节点是如何进行数据同步的。在上述方法的 <code>doSlaveSync</code> 变量中，可以看到回调函数是调用了根据 nodeId 找到的 <code>NsqdRpcClient</code> 的 <code>PutMessages</code> 方法，这其实是一个 gRPC 的客户端方法，进而可以找到对应的 Server 名为 <code>nsqdCoordGRpcServer</code>，对应的方法是位于 <code>consistence\coord_grpc_server.go</code> 文件中的 <code>PutMessages</code> 方法。</p>
+<p>&emsp;&emsp;<code>PutMessages</code> 方法会解析 RPC 请求里的数据，并调用 <code>putMessagesOnSlave</code> 方法，去构建回调函数。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *nsqdCoordGRpcServer)</span> <span class="title">PutMessages</span><span class="params">(ctx context.Context, req *pb.RpcPutMessages)</span> <span class="params">(*pb.CoordErr, error)</span></span> &#123;</div><div class="line">  ...</div><div class="line">  tc, err := s.nsqdCoord.checkWriteForGRpcCall(req.TopicData)</div><div class="line">  ...</div><div class="line">  <span class="comment">// do local pub message</span></div><div class="line">  commitData := fromPbCommitLogData(req.LogData)</div><div class="line">  <span class="keyword">var</span> msgs []*nsqd.Message</div><div class="line">  <span class="keyword">for</span> _, pbm := <span class="keyword">range</span> req.TopicMessage &#123;</div><div class="line">    <span class="keyword">var</span> msg nsqd.Message</div><div class="line">    ...</div><div class="line">    msgs = <span class="built_in">append</span>(msgs, &amp;msg)</div><div class="line">  &#125;</div><div class="line">  err = s.nsqdCoord.putMessagesOnSlave(tc, commitData, msgs)</div><div class="line">  ...</div><div class="line">  <span class="keyword">return</span> &amp;coordErr, <span class="literal">nil</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;重新回到 <code>consistence\nsqd_coordinator_cluster_write.go</code> 文件中，<code>putMessagesOnSlave</code> 方法主要是定义了回调函数，例如 <code>checkDupOnSlave</code>、<code>doLocalWriteOnSlave</code>、<code>doLocalCommit</code>、<code>doLocalExit</code>。源码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ncoord *NsqdCoordinator)</span> <span class="title">putMessagesOnSlave</span><span class="params">(coord *TopicCoordinator, logData CommitLogData, msgs []*nsqd.Message)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">  ...</div><div class="line">  checkDupOnSlave := <span class="function"><span class="keyword">func</span><span class="params">(tc *coordData)</span> <span class="title">bool</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  doLocalWriteOnSlave := <span class="function"><span class="keyword">func</span><span class="params">(tc *coordData)</span> *<span class="title">CoordErr</span></span> &#123;</div><div class="line">    <span class="comment">// 写入从节点</span></div><div class="line">    ...</div><div class="line">    topic, localErr = ncoord.localNsqd.GetExistingTopic(topicName, partition)</div><div class="line">    ...</div><div class="line">    topic.Lock()</div><div class="line">    ...</div><div class="line">    queueEnd, localErr = topic.PutMessagesOnReplica(msgs, nsqd.BackendOffset(logData.MsgOffset), <span class="keyword">int64</span>(logData.MsgSize))</div><div class="line">    ...</div><div class="line">    topic.Unlock()</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  doLocalCommit := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  doLocalExit := <span class="function"><span class="keyword">func</span><span class="params">(err *CoordErr)</span></span> &#123;</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> ncoord.doWriteOpOnSlave(coord, checkDupOnSlave, doLocalWriteOnSlave, doLocalCommit, doLocalExit)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;同样，<code>doWriteOpOnSlave</code> 方法，由于代码比较长，这里就不列出了，其中的业务逻辑跟上图基本是一致的。</p>
+<p>&emsp;&emsp;更多细节，可以参考<a href="https://tech.youzan.com/how-we-redesigned-the-nsq-the-details-of-the-new-arch/" target="_blank" rel="external">How we redesigned the NSQ - NSQ重塑之详细设计</a>的 <code>数据副本同步和动态ISR</code> 部分。</p>
+<p>&emsp;&emsp;到这里为止，基本上算是解决了官方版本 NSQ 的最大问题——<strong>节点异常情况下的数据丢失</strong>的问题，可以将不同分区复制到不同节点，且每个分区单独选举 Leader 节点，</p>
+<h2 id="2-6-严格顺序消费"><a href="#2-6-严格顺序消费" class="headerlink" title="2.6.严格顺序消费"></a>2.6.严格顺序消费</h2><h3 id="2-6-1-存在的问题"><a href="#2-6-1-存在的问题" class="headerlink" title="2.6.1.存在的问题"></a>2.6.1.存在的问题</h3><p>&emsp;&emsp;默认的消费模式，是允许多个客户端链接同时消费topic下的同一个分区的不同消息的，这样可以使用最小的分区数来达到较高的并发消费能力。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>避免了像Kafka那样为了提高消费能力，创建过多的分区，从而避免了过多分区数带来的磁盘随机IO问题。</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>带来乱序投递的问题。</li>
+</ul>
+<h3 id="2-6-2-解决方式"><a href="#2-6-2-解决方式" class="headerlink" title="2.6.2.解决方式"></a>2.6.2.解决方式</h3><p>&emsp;&emsp;对于需要保证消息严格按照生产写入的顺序进行投递的场景，有赞引入了顺序投递的特性。</p>
+<ul>
+<li>在生产方也支持按照业务定制id进行分区hash的生产能力，从而保证从生产到消费整条链路是按照分区内有序的方式进行消息流转的。</li>
+<li>消息生产方会根据业务的分区id将同样的id投递到同一个topic分区，保证相同id的数据的顺序一致性。</li>
+<li>而在投递时，会调整并发消费策略，保证同一时刻只会投递一条消息进行消费，等待上一次ack成功后才继续投递下一条消息。</li>
+<li>同时，为了避免leader切换时影响消息的顺序性，ack的消息还会同步到所有副本才算成功。</li>
+</ul>
+<p>&emsp;&emsp;然而也会存在跟Kafka相似的缺点，单个分区的消费并发能力不如乱序消费，主要取决于消费业务本身的处理能力，为了提高更高的顺序消费并发能力，需要更多的分区数。</p>
+<h2 id="2-7-消息轨迹查询系统"><a href="#2-7-消息轨迹查询系统" class="headerlink" title="2.7.消息轨迹查询系统"></a>2.7.消息轨迹查询系统</h2><p>&emsp;&emsp;之前的NSQ系统由于消息在chan里面流转一遍就没了，很难事后进行数据追查，也没有一个很好的方式去跟踪一条消息在从生产到被消费的各种中间状态。</p>
+<p>&emsp;&emsp;为了满足业务方时不时的来排查业务消息状态的需求，有赞改造后的NSQ也支持动态的开启这种消息轨迹排查功能。为了支持消息轨迹查询，有赞团队做了如下几个工作：</p>
+<ul>
+<li>能通过消息id定位到磁盘上的消息内容；</li>
+<li>支持传入业务traceId, 并将业务traceId和nsq的消息id关联起来；</li>
+<li>记录一条消息的所有中间态变化信息；</li>
+<li>将消息的状态变迁信息同步到ES搜索系统；</li>
+<li>nsqadmin提供方便的统一查询入口；</li>
+<li>支持针对topic和channel级别的动态跟踪开关以减少资源消耗。</li>
+</ul>
+<p>&emsp;&emsp;通过这一套轨迹查询系统，在业务方需要排查问题的时候，就能非常快速的找到异常消息的轨迹从而快速的定位业务问题了。特别是在排查顺序消费的业务场景时，经常能发现业务潜在的并发误用问题。</p>
+<h2 id="2-8-其他特性"><a href="#2-8-其他特性" class="headerlink" title="2.8.其他特性"></a>2.8.其他特性</h2><p>&emsp;&emsp;参考<a href="https://tech.youzan.com/how-we-redesigned-the-nsq-the-details-of-the-new-arch/" target="_blank" rel="external">How we redesigned the NSQ - NSQ重塑之详细设计</a>，可以看到有赞版本的NSQ还有 <code>自动数据平衡</code>、<code>分区支持</code>、<code>改造消费channel</code>、<code>处理重试和延时消费</code>、<code>消费数据预读优化</code>、<code>重放历史数据</code> 等特点。</p>
+<p>&emsp;&emsp;另外，参考<a href="https://tech.youzan.com/how-we-redesigned-the-nsq-other-features-and-future-plans/" target="_blank" rel="external">How we redesigned the NSQ - 其他特性及未来计划</a>，还可以看到 <code>NSQ拓展消息格式的设计</code>、<code>nsq迁移工具</code> 等。</p>
+<h1 id="3-参考资料"><a href="#3-参考资料" class="headerlink" title="3.参考资料"></a>3.参考资料</h1><p><a href="https://www.wangjunfeng.com.cn/2019/07/14/nsq-vs-kafka/" target="_blank" rel="external">为何要抛弃Kafka，选择NSQ！</a><br><a href="https://xiaomi-info.github.io/2019/12/06/nsq-src/" target="_blank" rel="external">走进 NSQ 源码细节</a><br><a href="https://nsq.io/components/nsqd.html" target="_blank" rel="external">官方文档 - 组件 - NSQD</a><br><a href="https://tech.youzan.com/how-we-redesign-the-nsq-overview/" target="_blank" rel="external">How we redesigned the NSQ - Overview</a><br><a href="https://tech.youzan.com/how-we-redesigned-the-nsq-the-details-of-the-new-arch/" target="_blank" rel="external">How we redesigned the NSQ - NSQ重塑之详细设计</a><br><a href="https://tech.youzan.com/how-we-redesigned-the-nsq-other-features-and-future-plans/" target="_blank" rel="external">How we redesigned the NSQ - 其他特性及未来计划</a></p>
+<h1 id="4-结语"><a href="#4-结语" class="headerlink" title="4.结语"></a>4.结语</h1><p>　　这是在实习过程中学习到的新知识，且全部是开源数据或者资料，因此分享出来，希望我和大家都有所收获。最终，这部分的学习也成为了我实习答辩的重要材料，对我帮助非常大。并帮助我完成了事件中心的 Agent 落盘部分的代码，用自己的学习帮助到了团队。<br><blockquote><p>参考资料已经在文中列出，这里不再一一列举。</p>
+<footer><strong>转载说明</strong></footer></blockquote></p>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2020/07/10/mq-kafka-nsq-hippo-basic/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+  </div>
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>
