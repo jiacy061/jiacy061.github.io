@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+
+
+  <html lang="zh-CN" class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>CentOS服务器防护策略 | Jiacy | 影子</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="SSH,网络攻击,CentOS," />
+  
+
+  <meta name="description" content="0.背景&amp;emsp;&amp;emsp;最近，著名的B507全栈实验室打造了一套Git系统，让小伙伴们往我们自有的Git系统上迁移项目，目的是便于管理，也便于大家相互学习。但是，没想到安全策略没做，很快就被暴力破解了。黑客删除了我们的数据库，并留下如下信息： 1To recover your lost databases and avoid leaking it: visit http://hn4wg4o">
+<meta name="keywords" content="SSH,网络攻击,CentOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS服务器防护策略">
+<meta property="og:url" content="http://jiacyer.com/2020/11/03/server-is-attacked/index.html">
+<meta property="og:site_name" content="Jiacy | 影子">
+<meta property="og:description" content="0.背景&amp;emsp;&amp;emsp;最近，著名的B507全栈实验室打造了一套Git系统，让小伙伴们往我们自有的Git系统上迁移项目，目的是便于管理，也便于大家相互学习。但是，没想到安全策略没做，很快就被暴力破解了。黑客删除了我们的数据库，并留下如下信息： 1To recover your lost databases and avoid leaking it: visit http://hn4wg4o">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-11-09T13:06:51.889Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CentOS服务器防护策略">
+<meta name="twitter:description" content="0.背景&amp;emsp;&amp;emsp;最近，著名的B507全栈实验室打造了一套Git系统，让小伙伴们往我们自有的Git系统上迁移项目，目的是便于管理，也便于大家相互学习。但是，没想到安全策略没做，很快就被暴力破解了。黑客删除了我们的数据库，并留下如下信息： 1To recover your lost databases and avoid leaking it: visit http://hn4wg4o">
+
+  
+
+  
+    <link rel="icon" href="/earth_favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+
+  
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+    </script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+
+<body>
+
+
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">盒子</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">盒子</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            文章
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tag/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/project/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            项目
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            链接
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-背景"><span class="toc-text">0.背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-查看SSH登录情况"><span class="toc-text">1.查看SSH登录情况</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-数据恢复"><span class="toc-text">2.数据恢复</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-防御措施"><span class="toc-text">3.防御措施</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-其他防范建议"><span class="toc-text">4.其他防范建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-总结"><span class="toc-text">5.总结</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-server-is-attacked" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">CentOS服务器防护策略</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.11.03</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Jiacy</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i>
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="0-背景"><a href="#0-背景" class="headerlink" title="0.背景"></a>0.背景</h1><p>&emsp;&emsp;最近，著名的B507全栈实验室打造了一套Git系统，让小伙伴们往我们自有的Git系统上迁移项目，目的是便于管理，也便于大家相互学习。但是，没想到安全策略没做，很快就被暴力破解了。黑客删除了我们的数据库，并留下如下信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">To recover your lost databases and avoid leaking it: visit http://hn4wg4o6s5nc7763.onion and enter your unique token 5bfd6d74fbb45a0a and pay the required amount of Bitcoin to get it back. Databases that we have: xxx, xxx. Your databases are downloaded and backed up on our servers. If we dont receive your payment in the next 9 Days, we will sell your database to the highest bidder or use them otherwise. To access this site you have use the tor browser https://www.torproject.org/projects/torbrowser.html</div></pre></td></tr></table></figure>
+<h1 id="1-查看SSH登录情况"><a href="#1-查看SSH登录情况" class="headerlink" title="1.查看SSH登录情况"></a>1.查看SSH登录情况</h1><p>&emsp;&emsp;CentOS 可以通过命令查看相关的登录情况，方便判断服务器的受攻击情况。</p>
+<ul>
+<li><code>lastlog</code> 查看所有用户最近（最新一条）的登录信息，主要包括 IP 和时间；</li>
+<li><code>last</code> 查看最近多条（包括当前已登录）登录信息用户信息，主要包括 IP、登录时间范围和时长；</li>
+<li><code>lastb</code> 查看失败尝试的登录信息。</li>
+</ul>
+<p>&emsp;&emsp;使用如下命令可统计指定用户名的登录失败的 IP 情况，可以不使用 <code>grep</code> 命令，即可统计所有用户：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">lastb | grep user_name | awk &apos;&#123;print $3&#125;&apos; | sort | uniq -c | sort -nr | more</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;使用如下命令可统计被尝试最多的用户名：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">lastb | awk &apos;&#123;print $1&#125;&apos; | sort | uniq -c | sort -nr | more</div></pre></td></tr></table></figure></p>
+<h1 id="2-数据恢复"><a href="#2-数据恢复" class="headerlink" title="2.数据恢复"></a>2.数据恢复</h1><p>&emsp;&emsp;发现被攻击后，我登录服务器，查看了SSH相关日志，确定服务器一直在被尝试暴力破解，每秒都在遭受大量的攻击。既然都攻破了，那先就不管吧，我决定看看数据有没有恢复的可能性。</p>
+<p>&emsp;&emsp;查看 <code>/etc/my.cnf</code> 发现 MySQL 开启了 binlog 日志，索性检查一下日志是否还在，尝试恢复，步骤大致如下：</p>
+<ul>
+<li><p>使用 <code>find / -name &quot;binlog*&quot;</code>，找到了位于 <code>/usr/local/lighthouse/softwares/btpanel/server/data</code> 路径下的 binlog 文件；</p>
+</li>
+<li><p>找到 MySQL 的 <code>bin</code> 目录，例如 <code>/www/server/mysql/bin</code>，其中有一个名为 <code>mysqlbinlog</code> 的可执行文件；</p>
+</li>
+<li><p>将 binlog 文件拷贝到 <code>bin</code> 目录下，例如 <code>mysql-bin.000001</code> 文件，并执行 <code>mysqlbinlog mysql-bin.000001 -d database_name &gt; database_name.sql</code>，导出成 SQL 语句。</p>
+</li>
+</ul>
+<p>&emsp;&emsp;查看 <code>database_name.sql</code> 文件，可以看到如下信息，而真正有用的 SQL 语句并不多，且不能直接使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=1*/;</div><div class="line">/*!40019 SET @@session.max_insert_delayed_threads=0*/;</div><div class="line">/*!50003 SET @OLD_COMPLETION_TYPE=@@COMPLETION_TYPE,COMPLETION_TYPE=0*/;</div><div class="line">DELIMITER /*!*/;</div><div class="line"># at 4</div><div class="line">#200930 13:26:59 server id 1  end_log_pos 120 CRC32 0x877fe63c 	Start: binlog v 4, server v 5.6.49-log created 200930 13:26:59 at startup</div><div class="line">ROLLBACK/*!*/;</div><div class="line"></div><div class="line">...</div><div class="line"></div><div class="line"># at 48733</div><div class="line">#201009 14:50:46 server id 1  end_log_pos 48867 CRC32 0x63a2bb70 	Query	thread_id=498	exec_time=0	error_code=0</div><div class="line">SET TIMESTAMP=1602226246/*!*/;</div><div class="line">UPDATE access SET mode = 3 WHERE user_id = 5 AND repo_id = 1</div><div class="line">/*!*/;</div><div class="line"># at 48867</div><div class="line">#201009 14:50:46 server id 1  end_log_pos 48898 CRC32 0x5f1fd816 	Xid = 8965</div><div class="line">COMMIT/*!*/;</div><div class="line">DELIMITER ;</div><div class="line"># End of log file</div><div class="line">ROLLBACK /* added by mysqlbinlog */;</div><div class="line">/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/;</div><div class="line">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;这里写了一段简单的 Java 代码进行处理，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.io.*;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">        <span class="comment">//BufferedReader是可以按行读取文件</span></div><div class="line">        FileInputStream inputStream = <span class="keyword">new</span> FileInputStream(<span class="string">"C:\\database_name.sql"</span>);</div><div class="line">        BufferedReader bufferedReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(inputStream));</div><div class="line"></div><div class="line">        BufferedWriter out = <span class="keyword">new</span> BufferedWriter(<span class="keyword">new</span> FileWriter(<span class="string">"C:\\database_name_out.sql"</span>));</div><div class="line"></div><div class="line">        String str = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">while</span>((str = bufferedReader.readLine()) != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (str.startsWith(<span class="string">"INSERT"</span>) || str.startsWith(<span class="string">"UPDATE"</span>) || str.startsWith(<span class="string">"DELETE"</span>)) &#123;</div><div class="line">                System.out.println(str);</div><div class="line">                out.write(str + <span class="string">";\n"</span>);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">//close</span></div><div class="line">        inputStream.close();</div><div class="line">        bufferedReader.close();</div><div class="line">        out.close();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;处理完成之后，就可以导入 SQL 文件到 MySQL 中，数据基本就恢复了。</p>
+<h1 id="3-防御措施"><a href="#3-防御措施" class="headerlink" title="3.防御措施"></a>3.防御措施</h1><p>&emsp;&emsp;早在 <a href="https://jiacyer.com/2018/01/21/vps-ssh-login-attempts-attack/">VPS防止SSH暴力登录尝试攻击</a> 一文中，我就已经提到过使用 <code>DenyHosts</code> 进行防御的方法，之前是基于 <code>Ubuntu</code> 的，本次是 <code>CentOS</code>，过程略有不同。</p>
+<ul>
+<li>下载最新版 <code>denyhosts</code>，执行命令 <code>wget https://sourceforge.net/projects/denyhosts/files/latest/download -O denyhosts-lastest.zip</code>；</li>
+<li>解压文件，<code>unzip denyhosts-lastest.zip</code>；</li>
+<li>进入其文件夹，例如我这里下载的最新版是 <code>2.10</code>，<code>cd denyhosts-2.10</code>；</li>
+<li>如果未安装 Python ，请使用命令安装：<code>yum install python2 –y</code>；</li>
+<li>安装 <code>DenyHosts</code>，<code>python setup.py install</code>。</li>
+</ul>
+<p>&emsp;&emsp;安装完成后，在进行相关配置，并启动服务。</p>
+<ul>
+<li>先进入 <code>/etc</code> ，编辑 <code>denyhosts.conf</code> 文件，将原本的 <code>SECURE_LOG</code> 属性注释掉，解掉 <code>Redhat or Fedora Core</code> 下的注释；</li>
+<li>进入 <code>/usr/bin</code> 目录，编辑 <code>daemon-control-dist</code> 文件，将 <code>DENYHOSTS_BIN</code> 属性从 <code>&quot;/usr/local/bin/denyhosts-2.10/denyhosts.py&quot;</code> 改为 <code>&quot;/usr/bin/denyhosts.py&quot;</code>；</li>
+<li>启动前，最好删除 <code>/var/log/secure</code> 文件，重新开始记录；</li>
+<li>使用命令 <code>daemon-control-dist start</code> 启动服务。</li>
+</ul>
+<p>&emsp;&emsp;启动完成后，可以使用命名 <code>tailf /var/log/secure</code> 查看不断在尝试登录的 IP 地址，同时使用命令 <code>tailf /etc/hosts.deny</code> 查看文件是否有源源不断地添加攻击者 IP ，有则服务生效。但注意将 <code>ALL: 127.0.0.1</code> 先加入 <code>/etc/hosts.allow</code> 中，以免出现本地都无法访问的情况。</p>
+<h1 id="4-其他防范建议"><a href="#4-其他防范建议" class="headerlink" title="4.其他防范建议"></a>4.其他防范建议</h1><ul>
+<li>建议为不同的服务，新建一个 MySQL 用户，并在创建完所需要的表后，revoke 掉不必要的权限，例如新增或删除表；</li>
+<li>禁止 MySQL 用户直接远程登录；</li>
+<li>在遭受攻击后，及时更改服务器用户密码和 MySQL 用户密码；</li>
+<li>最后，编写脚本，定时备份数据库，并通过 <code>crontab -e</code> 命令，在末尾添加 <code>0 * * * * /path/to/back_db.sh &gt; /dev/null 2&gt;&amp;1 &amp;</code>，即每小时定时备份数据库：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>! /bin/sh</div><div class="line"></div><div class="line">yestoday=$(date "+%Y%m%d-%H" -d "-24hour")</div><div class="line">time=$(date "+%Y%m%d-%H")</div><div class="line">rm -f /path/to/bak/$yestoday.sql</div><div class="line">mysqldump -uroot -p123456 --databases database_name -y &gt; /path/to/bak/$time.sql</div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;设置完成后，可通过 <code>/var/log/cron</code> 日志看到执行情况。</p>
+<h1 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h1><p>&emsp;&emsp;虽然不是什么特别重要的数据，但这个故事告诉我们，服务器首先得做安全措施，然后再部署服务。并且，无论是SSH还是MySQL，都不应该使用常见的弱密码。</p>
+<blockquote><p>转载请注明出处，无偿提供。</p>
+<footer><strong>@Jiacy</strong><cite><a href="https://jiacyer.com">jiacyer.com</a></cite></footer></blockquote>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">感谢大佬们的支持</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            
+              <div name="dashmain" id="dash-main-id-879895" class="dash-main-4 879895-1"></div>
+              <script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+            
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="hide pull-left" href="/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2020/07/31/youzan-nsq/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+
+</div>
+
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+<!--<div width="100%" align="center">
+<div name="dashmain" id="dash-main-id-879837" class="dash-main-3 879837-1"></div>
+<script type="text/javascript" charset="utf-8" src="https://www.dashangcloud.com/static/ds-2.0.js"></script>
+</div>
+--->
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              文章
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tag/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/project/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              项目
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              链接
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+
+
+
+    
+
+    
+
+    
+
+<!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zMTczMy84Mjk3">
+ <script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+ </script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+
+
+
+  </div>
+
+  
+
+  
+    <div class="myFooterDiv" style="position:relative; bottom:50px;">
+  <footer class="myFooter">
+    <p id="footer_text">&copy; 2017 - {$nowYear} ❤ Jiacy  |  Power by Hexo. Built on Github Pages.</p>
+  </footer>
+</div>
+
+  
+
+</body>
+<script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+
+    var footer = document.getElementById("footer_text");
+    var str = footer.innerHTML;
+    var path = window.location.pathname;
+    if (path!="/") {
+      // 更新非主页的页脚年份
+      var today = new Date();
+      var nowYear = today.getFullYear();
+      if(str.indexOf(nowYear) != -1) {
+        // 创建时间与现在同年
+        str = "&copy; Since " + nowYear + str.substring(str.indexOf("}") + 1, str.length);
+      } else {
+        // 创建时间与现在非同年
+        str = str.replace("{$nowYear}", nowYear);
+      }
+    } else {
+      // 首页
+      str = ""
+    }
+
+    // 更新并修改颜色
+    footer.innerHTML = str;
+    footer.style.color = "#dddddd";
+  }
+
+
+
+</script>
+
+</html>
